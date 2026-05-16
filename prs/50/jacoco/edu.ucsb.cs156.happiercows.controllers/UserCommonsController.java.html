@@ -82,8 +82,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 <span class="fc" id="L82">        Commons commons = commonsRepository.findById(commonsId).orElseThrow( </span>
 <span class="fc" id="L83">          ()-&gt;new EntityNotFoundException(Commons.class, commonsId));</span>
 
-<span class="pc bpc" id="L85" title="1 of 2 branches missed.">        if (commons.isHidden()) {</span>
-<span class="nc" id="L86">            throw new CommonsHiddenException();</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">        if (commons.isHidden()) {</span>
+<span class="fc" id="L86">            throw new CommonsHiddenException();</span>
         }
 
 <span class="fc" id="L89">        UserCommons userCommons = userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)</span>
@@ -116,8 +116,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 <span class="fc" id="L116">        Commons commons = commonsRepository.findById(commonsId).orElseThrow( </span>
 <span class="fc" id="L117">          ()-&gt;new EntityNotFoundException(Commons.class, commonsId));</span>
 
-<span class="pc bpc" id="L119" title="1 of 2 branches missed.">          if (commons.isHidden()) {</span>
-<span class="nc" id="L120">            throw new CommonsHiddenException();</span>
+<span class="fc bfc" id="L119" title="All 2 branches covered.">          if (commons.isHidden()) {</span>
+<span class="fc" id="L120">            throw new CommonsHiddenException();</span>
           }
 
 <span class="fc" id="L123">        UserCommons userCommons = userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)</span>
