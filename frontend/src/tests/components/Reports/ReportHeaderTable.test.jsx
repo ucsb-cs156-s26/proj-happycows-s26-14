@@ -31,15 +31,33 @@ describe("ReportHeaderTable tests", () => {
     const testId = "ReportHeaderTable";
 
     // EXPLICIT HEADER CHECKS to kill string literal mutants ("BelowCap", "Capacity", etc.)
-    expect(screen.getByTestId(`${testId}-header-cowPrice`)).toHaveTextContent("Cow Price");
-    expect(screen.getByTestId(`${testId}-header-milkPrice`)).toHaveTextContent("Milk Price");
-    expect(screen.getByTestId(`${testId}-header-startingBalance`)).toHaveTextContent("Start Bal");
-    expect(screen.getByTestId(`${testId}-header-startingDate`)).toHaveTextContent("Start Date");
-    expect(screen.getByTestId(`${testId}-header-showLeaderboard`)).toHaveTextContent("Leaderboard");
-    expect(screen.getByTestId(`${testId}-header-carryingCapacity`)).toHaveTextContent("Capacity");
-    expect(screen.getByTestId(`${testId}-header-degradationRate`)).toHaveTextContent("Degrad Rate");
-    expect(screen.getByTestId(`${testId}-header-belowCapacityHealthUpdateStrategy`)).toHaveTextContent("BelowCap");
-    expect(screen.getByTestId(`${testId}-header-aboveCapacityHealthUpdateStrategy`)).toHaveTextContent("AboveCap");
+    expect(screen.getByTestId(`${testId}-header-cowPrice`)).toHaveTextContent(
+      "Cow Price",
+    );
+    expect(screen.getByTestId(`${testId}-header-milkPrice`)).toHaveTextContent(
+      "Milk Price",
+    );
+    expect(
+      screen.getByTestId(`${testId}-header-startingBalance`),
+    ).toHaveTextContent("Start Bal");
+    expect(
+      screen.getByTestId(`${testId}-header-startingDate`),
+    ).toHaveTextContent("Start Date");
+    expect(
+      screen.getByTestId(`${testId}-header-showLeaderboard`),
+    ).toHaveTextContent("Leaderboard");
+    expect(
+      screen.getByTestId(`${testId}-header-carryingCapacity`),
+    ).toHaveTextContent("Capacity");
+    expect(
+      screen.getByTestId(`${testId}-header-degradationRate`),
+    ).toHaveTextContent("Degrad Rate");
+    expect(
+      screen.getByTestId(`${testId}-header-belowCapacityHealthUpdateStrategy`),
+    ).toHaveTextContent("BelowCap");
+    expect(
+      screen.getByTestId(`${testId}-header-aboveCapacityHealthUpdateStrategy`),
+    ).toHaveTextContent("AboveCap");
 
     expectedFields.forEach((field) => {
       const header = screen.getByTestId(`${testId}-cell-row-0-col-${field}`);
@@ -91,20 +109,30 @@ describe("ReportHeaderTable tests", () => {
     const testId = "ReportHeaderTable";
 
     // Grab the cell, then grab its first child (which is the div with the style)
-    const cowPriceDiv = screen.getByTestId(`${testId}-cell-row-0-col-cowPrice`).firstElementChild;
+    const cowPriceDiv = screen.getByTestId(
+      `${testId}-cell-row-0-col-cowPrice`,
+    ).firstElementChild;
     expect(cowPriceDiv).toHaveStyle("text-align: right");
 
-    const milkPriceDiv = screen.getByTestId(`${testId}-cell-row-0-col-milkPrice`).firstElementChild;
+    const milkPriceDiv = screen.getByTestId(
+      `${testId}-cell-row-0-col-milkPrice`,
+    ).firstElementChild;
     expect(milkPriceDiv).toHaveStyle("text-align: right");
 
-    const startingBalanceDiv = screen.getByTestId(`${testId}-cell-row-0-col-startingBalance`).firstElementChild;
+    const startingBalanceDiv = screen.getByTestId(
+      `${testId}-cell-row-0-col-startingBalance`,
+    ).firstElementChild;
     expect(startingBalanceDiv).toHaveStyle("text-align: right");
 
     // EXPLICIT STYLE CHECKS for Capacity and Degrad Rate to kill the newly revealed mutants
-    const capacityDiv = screen.getByTestId(`${testId}-cell-row-0-col-carryingCapacity`).firstElementChild;
+    const capacityDiv = screen.getByTestId(
+      `${testId}-cell-row-0-col-carryingCapacity`,
+    ).firstElementChild;
     expect(capacityDiv).toHaveStyle("text-align: right");
 
-    const degradRateDiv = screen.getByTestId(`${testId}-cell-row-0-col-degradationRate`).firstElementChild;
+    const degradRateDiv = screen.getByTestId(
+      `${testId}-cell-row-0-col-degradationRate`,
+    ).firstElementChild;
     expect(degradRateDiv).toHaveStyle("text-align: right");
   });
 });

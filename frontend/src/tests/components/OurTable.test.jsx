@@ -172,7 +172,7 @@ describe("OurTable tests", () => {
     expect(
       await screen.findByTestId("testid-next-page-button"),
     ).toBeInTheDocument();
-    
+
     // EXPLICITLY check that the previous button has the disabled class when pageIndex === 0
     const initialPrevButton = screen.getByTestId("testid-prev-page-button");
     expect(initialPrevButton.closest("li")).toHaveClass("disabled");
@@ -185,13 +185,13 @@ describe("OurTable tests", () => {
     expect(
       await screen.findByTestId("testid-current-page-button"),
     ).toContainHTML("1");
-    
+
     // Click next page
     fireEvent.click(initialNextButton);
     expect(
       await screen.findByTestId("testid-current-page-button"),
     ).toContainHTML("2");
-    
+
     // EXPLICITLY check that the previous button is NOT disabled when pageIndex > 0
     const prevButtonAfterClick = screen.getByTestId("testid-prev-page-button");
     expect(prevButtonAfterClick.closest("li")).not.toHaveClass("disabled");
@@ -200,7 +200,7 @@ describe("OurTable tests", () => {
     expect(newNext.closest("li")).toHaveClass("disabled");
 
     expect(await screen.findByText(`Hello 11`)).toBeInTheDocument();
-    
+
     // Click previous page
     fireEvent.click(prevButtonAfterClick);
     expect(await screen.findByText(`Hello 1`)).toBeInTheDocument();

@@ -17,7 +17,11 @@ const daysSinceTimestamp = (date) => {
   var today = new Date();
   var startingDate = new Date(date);
   // calculate difference in calendar days (ignore time-of-day)
-  var utcToday = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  var utcToday = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
   var utcStart = Date.UTC(
     startingDate.getFullYear(),
     startingDate.getMonth(),

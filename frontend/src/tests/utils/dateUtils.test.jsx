@@ -40,11 +40,15 @@ describe("dateUtils tests", () => {
     });
 
     it("returns 1 day for just under 24 hours", () => {
-      expect(daysSinceTimestamp(new Date("2022-05-31T12:00:01Z").toISOString())).toBe(1);
+      expect(
+        daysSinceTimestamp(new Date("2022-05-31T12:00:01Z").toISOString()),
+      ).toBe(1);
     });
 
     it("returns 2 days for just over 24 hours", () => {
-      expect(daysSinceTimestamp(new Date("2022-05-30T11:59:59Z").toISOString())).toBe(2);
+      expect(
+        daysSinceTimestamp(new Date("2022-05-30T11:59:59Z").toISOString()),
+      ).toBe(2);
     });
   });
 
@@ -98,9 +102,9 @@ describe("dateUtils tests", () => {
       const twentyThreeHoursFiftyNineMinutesFiftyNineSecondsAgo = new Date(
         "2022-05-31T12:00:01Z",
       ).toISOString();
-      expect(formatTime(twentyThreeHoursFiftyNineMinutesFiftyNineSecondsAgo)).toEqual(
-        "23 hours ago",
-      );
+      expect(
+        formatTime(twentyThreeHoursFiftyNineMinutesFiftyNineSecondsAgo),
+      ).toEqual("23 hours ago");
     });
 
     it("should return days ago format", () => {

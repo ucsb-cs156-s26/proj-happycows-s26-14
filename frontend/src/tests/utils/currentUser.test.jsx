@@ -40,7 +40,7 @@ describe("utils/currentUser tests", () => {
       const { result } = renderHook(() => useCurrentUser(), {
         wrapper,
       });
-      
+
       // FIX: Force waitFor to evaluate an assertion
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -73,7 +73,7 @@ describe("utils/currentUser tests", () => {
 
       // FIX: Force waitFor to evaluate an assertion
       await waitFor(() => expect(result.current.isFetched).toBe(true));
-      
+
       expect(result.current.data.loggedIn).toBe(true);
       expect(result.current.data.root).toBeTruthy();
 
@@ -105,13 +105,13 @@ describe("utils/currentUser tests", () => {
 
       // FIX: Force waitFor to pause until the post-fetch state officially updates!
       await waitFor(() => expect(result.current.isFetched).toBe(true));
-      
+
       expect(console.error).toHaveBeenCalled();
       const errorMessage = console.error.mock.calls[0][0];
       expect(errorMessage).toMatch(/Error invoking axios.get:/);
       restoreConsole();
 
-      // Now that we genuinely waited for the fetch to update the state, 
+      // Now that we genuinely waited for the fetch to update the state,
       // if the mutant returns {}, result.current.data will be {}.
       // These assertions will strike it down instantly.
       expect(result.current.data.loggedIn).toBe(false);
@@ -141,7 +141,7 @@ describe("utils/currentUser tests", () => {
 
       // FIX: Force waitFor to evaluate an assertion
       await waitFor(() => expect(result.current.isFetched).toBe(true));
-      
+
       expect(console.error).toHaveBeenCalled();
       const errorMessage = console.error.mock.calls[0][0];
       expect(errorMessage).toMatch(/Error getting roles: /);
