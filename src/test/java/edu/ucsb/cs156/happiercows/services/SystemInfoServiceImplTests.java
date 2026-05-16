@@ -10,12 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import edu.ucsb.cs156.happiercows.models.SystemInfo;
 
 // The unit under test relies on property values
 // For hints on testing, see: https://www.baeldung.com/spring-boot-testing-configurationproperties
-
 
 @ExtendWith(SpringExtension.class)
 @EnableConfigurationProperties(value = SystemInfoServiceImpl.class)
@@ -34,6 +34,22 @@ class SystemInfoServiceImplTests  {
     assertTrue(si.getGithubUrl().endsWith(si.getCommitId()));
     assertTrue(si.getGithubUrl().contains("/commit/"));
     assertEquals("", si.getFeatureFlags());
+  }
+
+  @Test
+  void test_getSystemInfo_with_feature_flags() {
+    // We explicitly test the feature flags using a fresh instance and reflection 
+    // to kill mutants that might try to delete the feature flag builder logic.
+    SystemInfoServiceImpl service = new SystemInfoServiceImpl();
+    ReflectionTestUtils.setField(service, "springH2ConsoleEnabled", true);
+    ReflectionTestUtils.setField(service, "showSwaggerUILink", true);
+    ReflectionTestUtils.setField(service, "sourceRepo", "https://github.com/ucsb-cs156/proj-happycows");
+    ReflectionTestUtils.setField(service, "commitId", "abcdef12345");
+    ReflectionTestUtils.setField(service, "commitMessage", "Update feature flags");
+    ReflectionTestUtils.setField(service, "featureFlags", "A,B,C");
+
+    SystemInfo si = service.getSystemInfo();
+    assertEquals("A,B,C", si.getFeatureFlags());
   }
 
   @Test
