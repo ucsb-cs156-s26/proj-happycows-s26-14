@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-s26/proj-happycows-s26-14
 owner: ucsb-cs156-s26
 repo_name: proj-happycows-s26-14
-pull_requests: [{"author":{"id":"U_kgDOCuio_A","is_bot":false,"login":"VishvaAr","name":"Vishva"},"headRefName":"Vishva_featureflag","number":48,"title":"Add systemInfo feature flags support","url":"https://github.com/ucsb-cs156-s26/proj-happycows-s26-14/pull/48"}]
+pull_requests: [{"author":{"id":"U_kgDODhRx4g","is_bot":false,"login":"AlessandroBa","name":"Alessandro"},"headRefName":"ale-hidden-commons-buysell-exception","number":50,"title":"Add CommonsHiddenException to prevent buy/sell on hidden commons","url":"https://github.com/ucsb-cs156-s26/proj-happycows-s26-14/pull/50"},{"author":{"id":"U_kgDOCuio_A","is_bot":false,"login":"VishvaAr","name":"Vishva"},"headRefName":"Vishva_featureflag","number":48,"title":"Add systemInfo feature flags support","url":"https://github.com/ucsb-cs156-s26/proj-happycows-s26-14/pull/48"}]
