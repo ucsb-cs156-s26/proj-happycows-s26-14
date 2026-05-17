@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router";
 
 import { coursesFixtures } from "fixtures/coursesFixtures";
 import { currentUserFixtures } from "fixtures/currentUserFixtures";
-import CoursesTable from "main/components/Courses/CoursesTable";
+import CoursesTable from "main/components/Courses/CourseTable";
 import {
   cellToAxiosParamsDelete,
   onDeleteSuccess,
