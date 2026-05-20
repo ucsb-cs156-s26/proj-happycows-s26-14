@@ -1,6 +1,7 @@
 import BasicLayout from "main/layouts/BasicLayout/BasicLayout";
 import { useParams } from "react-router";
 import CommonsForm from "main/components/Commons/CommonsForm";
+import CommonsFeaturesForm from "main/components/Commons/CommonsFeaturesForm";
 import { Navigate } from "react-router";
 import { useBackend, useBackendMutation } from "main/utils/useBackend";
 import { toast } from "react-toastify";
@@ -51,6 +52,45 @@ export default function CommonsEditPage() {
     },
   });
 
+  const {
+    data: commonsFeatures,
+    _error: _commonsFeaturesError,
+    _status: _commonsFeaturesStatus,
+  } = useBackend(
+    [`/api/commonsfeatures?commonsId=${id}`],
+    {
+      method: "GET",
+      url: "/api/commonsfeatures",
+      params: {
+        commonsId: id,
+      },
+    },
+    {},
+  );
+
+  const commonsFeaturesObjectToAxiosParams = (features) => ({
+    url: "/api/commonsfeatures",
+    method: "POST",
+    data: {
+      commonsId: id,
+      ...features,
+    },
+  });
+
+  const commonsFeaturesMutation = useBackendMutation(
+    commonsFeaturesObjectToAxiosParams,
+    {
+      onSuccess: () => {
+        toast("Commons features updated successfully");
+      },
+    },
+    [`/api/commonsfeatures?commonsId=${id}`],
+  );
+
+  const commonsFeaturesSubmitAction = async (data) => {
+    commonsFeaturesMutation.mutate(data);
+  };
+
   const onSuccess = (_, commons) => {
     toast(`Commons Updated - id: ${commons.id} name: ${commons.name}`);
   };
@@ -82,6 +122,17 @@ export default function CommonsEditPage() {
             submitAction={submitAction}
             buttonLabel="Update"
           />
+        )}
+        {commonsFeatures && (
+          <>
+            <div className="border-bottom mb-4"></div>
+            <h2>Commons Feature Flags</h2>
+            <CommonsFeaturesForm
+              features={commonsFeatures}
+              onSubmit={commonsFeaturesSubmitAction}
+              buttonLabel="Save Commons Features"
+            />
+          </>
         )}
       </div>
     </BasicLayout>

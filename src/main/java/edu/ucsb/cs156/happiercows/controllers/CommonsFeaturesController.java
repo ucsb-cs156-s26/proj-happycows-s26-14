@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -45,6 +46,28 @@ public class CommonsFeaturesController extends ApiController {
                 .map(Enum::name)
                 .collect(Collectors.toList())
         );
+    }
+
+    @Operation(summary = "Get commons feature settings for a commons ID")
+    @GetMapping(params = "commonsId")
+    public ResponseEntity<Map<String, Boolean>> getCommonsFeaturesByCommonsId(
+            @RequestParam Long commonsId) {
+        if (!commonsRepository.existsById(commonsId)) {
+            throw new EntityNotFoundException(Commons.class, commonsId);
+        }
+
+        Map<String, Boolean> featureValues = new java.util.LinkedHashMap<>();
+        for (CommonsFeatures feature : CommonsFeatures.values()) {
+            featureValues.put(feature.name(), false);
+        }
+
+        for (CommonsFeature commonsFeature : commonsFeatureRepository.findByCommonsId(commonsId)) {
+            if (featureValues.containsKey(commonsFeature.getFeature())) {
+                featureValues.put(commonsFeature.getFeature(), commonsFeature.isEnabled());
+            }
+        }
+
+        return ResponseEntity.ok(featureValues);
     }
 
     @Operation(summary = "Save commons feature settings")

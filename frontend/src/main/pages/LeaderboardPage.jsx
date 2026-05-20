@@ -39,26 +39,27 @@ export default function LeaderboardPage() {
 
   // Stryker disable all
   const {
-    data: commons,
-    error: _commonsError,
-    status: _commonsStatus,
+    data: commonsFeatures,
+    error: _commonsFeaturesError,
+    status: _commonsFeaturesStatus,
   } = useBackend(
-    [`/api/commons?id=${commonsId}`],
+    [`/api/commonsfeatures?commonsId=${commonsId}`],
     {
       method: "GET",
-      url: "/api/commons",
+      url: "/api/commonsfeatures",
       params: {
-        id: commonsId,
+        commonsId: commonsId,
       },
     },
-    [],
+    {},
   );
   // Stryker restore all
 
   const navigate = useNavigate();
 
   const showLeaderboard =
-    hasRole(currentUser, "ROLE_ADMIN") || commons.showLeaderboard;
+    hasRole(currentUser, "ROLE_ADMIN") ||
+    commonsFeatures?.FARMERS_CAN_SEE_LEADERBOARD;
   return (
     <div
       data-testid={"LeaderboardPage-main-div"}

@@ -31,6 +31,11 @@ describe("CommonsOverview tests", () => {
   });
 
   test("Redirects to the LeaderboardPage for an admin when you click visit", async () => {
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 4 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -50,6 +55,12 @@ describe("CommonsOverview tests", () => {
   });
 
   test("LeaderboardPage for an ordinary user when commons has showLeaderboard = true", async () => {
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 5 } })
+      .replyOnce(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: true,
+      });
+
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -68,6 +79,12 @@ describe("CommonsOverview tests", () => {
   });
 
   test("No LeaderboardPage for an ordinary user when commons has showLeaderboard = false", async () => {
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 4 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
+
     render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>

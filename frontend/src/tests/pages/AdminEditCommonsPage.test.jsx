@@ -68,6 +68,9 @@ describe("AdminEditCommonsPage tests", () => {
         belowCapacityHealthUpdateStrategy: "strat2",
         hidden: false,
       });
+      axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 5 } }).reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
       axiosMock.onPut("/api/commons/update").reply(200, {
         id: 5,
         name: "Phill's Commons",
@@ -140,6 +143,49 @@ describe("AdminEditCommonsPage tests", () => {
       expect(showLeaderboardField).not.toBeChecked();
       expect(showChatField).not.toBeChecked();
       expect(hiddenField).not.toBeChecked();
+
+      const featureCheckbox = await screen.findByTestId(
+        "CommonsFeaturesForm-FARMERS_CAN_SEE_LEADERBOARD",
+      );
+      expect(featureCheckbox).toBeInTheDocument();
+      expect(featureCheckbox).not.toBeChecked();
+    });
+
+    test("Updates commons features when form is submitted", async () => {
+      axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 5 } }).reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
+      axiosMock.onPost("/api/commonsfeatures").reply(200, {
+        message: "Commons features updated successfully",
+      });
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <AdminEditCommonsPage />
+          </MemoryRouter>
+        </QueryClientProvider>,
+      );
+
+      expect(
+        await screen.findByTestId("CommonsFeaturesForm-FARMERS_CAN_SEE_LEADERBOARD"),
+      ).toBeInTheDocument();
+
+      const featureCheckbox = screen.getByTestId(
+        "CommonsFeaturesForm-FARMERS_CAN_SEE_LEADERBOARD",
+      );
+      fireEvent.click(featureCheckbox);
+      expect(featureCheckbox).toBeChecked();
+
+      const submitButton = screen.getByTestId("CommonsFeaturesForm-Submit-Button");
+      fireEvent.click(submitButton);
+
+      await waitFor(() => expect(mockToast).toHaveBeenCalled());
+      expect(axiosMock.history.post.length).toBe(1);
+      expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
+        commonsId: 5,
+        FARMERS_CAN_SEE_LEADERBOARD: true,
+      });
     });
 
     test("Changes when you click Update", async () => {

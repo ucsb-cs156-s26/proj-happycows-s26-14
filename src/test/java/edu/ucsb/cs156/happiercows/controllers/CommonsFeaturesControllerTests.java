@@ -14,6 +14,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,76 @@ public class CommonsFeaturesControllerTests extends ControllerTestCase {
         );
         String responseString = response.getResponse().getContentAsString();
         assertEquals(expectedJson, responseString);
+    }
+
+    @WithMockUser(roles = { "USER" })
+    @Test
+    public void getCommonsFeatures_returns_feature_settings_for_commons() throws Exception {
+        long commonsId = 7L;
+        when(commonsRepository.existsById(commonsId)).thenReturn(true);
+        when(commonsFeatureRepository.findByCommonsId(commonsId))
+                .thenReturn(Arrays.asList(
+                        CommonsFeature.builder()
+                                .commonsId(commonsId)
+                                .feature("FARMERS_CAN_SEE_LEADERBOARD")
+                                .enabled(true)
+                                .build()));
+
+        MvcResult response = mockMvc.perform(get("/api/commonsfeatures").param("commonsId", "7"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Boolean> expected = new LinkedHashMap<>();
+        for (CommonsFeatures feature : CommonsFeatures.values()) {
+            expected.put(feature.name(), feature == CommonsFeatures.FARMERS_CAN_SEE_LEADERBOARD);
+        }
+
+        String expectedJson = mapper.writeValueAsString(expected);
+        assertEquals(expectedJson, response.getResponse().getContentAsString());
+    }
+
+    @WithMockUser(roles = { "USER" })
+    @Test
+    public void getCommonsFeatures_returns_not_found_when_commons_does_not_exist() throws Exception {
+        long commonsId = 7L;
+        when(commonsRepository.existsById(commonsId)).thenReturn(false);
+
+        MvcResult response = mockMvc.perform(get("/api/commonsfeatures").param("commonsId", "7"))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertNotNull(response.getResolvedException());
+    }
+
+    @WithMockUser(roles = { "USER" })
+    @Test
+    public void getCommonsFeatures_ignores_unknown_feature_values() throws Exception {
+        long commonsId = 7L;
+        when(commonsRepository.existsById(commonsId)).thenReturn(true);
+        when(commonsFeatureRepository.findByCommonsId(commonsId))
+                .thenReturn(Arrays.asList(
+                        CommonsFeature.builder()
+                                .commonsId(commonsId)
+                                .feature("FARMERS_CAN_SEE_LEADERBOARD")
+                                .enabled(true)
+                                .build(),
+                        CommonsFeature.builder()
+                                .commonsId(commonsId)
+                                .feature("UNKNOWN_FEATURE")
+                                .enabled(true)
+                                .build()));
+
+        MvcResult response = mockMvc.perform(get("/api/commonsfeatures").param("commonsId", "7"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        Map<String, Boolean> expected = new LinkedHashMap<>();
+        for (CommonsFeatures feature : CommonsFeatures.values()) {
+            expected.put(feature.name(), feature == CommonsFeatures.FARMERS_CAN_SEE_LEADERBOARD);
+        }
+
+        String expectedJson = mapper.writeValueAsString(expected);
+        assertEquals(expectedJson, response.getResponse().getContentAsString());
     }
 
     @WithMockUser(roles = { "ADMIN" })

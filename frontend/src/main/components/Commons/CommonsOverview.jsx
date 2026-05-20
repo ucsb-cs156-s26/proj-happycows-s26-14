@@ -1,6 +1,7 @@
 import React from "react";
 import { Row, Card, Col, Button } from "react-bootstrap";
 import { useNavigate } from "react-router";
+import { useBackend } from "main/utils/useBackend";
 import { hasRole } from "main/utils/currentUser";
 import { daysSinceTimestamp } from "main/utils/dateUtils";
 
@@ -11,8 +12,26 @@ export default function CommonsOverview({ commonsPlus, currentUser }) {
     navigate("/leaderboard/" + commonsPlus.commons.id);
   };
   // Stryker restore all
+
+  const {
+    data: commonsFeatures,
+    error: _commonsFeaturesError,
+    status: _commonsFeaturesStatus,
+  } = useBackend(
+    [`/api/commonsfeatures?commonsId=${commonsPlus.commons.id}`],
+    {
+      method: "GET",
+      url: "/api/commonsfeatures",
+      params: {
+        commonsId: commonsPlus.commons.id,
+      },
+    },
+    {},
+  );
+
   const showLeaderboard =
-    hasRole(currentUser, "ROLE_ADMIN") || commonsPlus.commons.showLeaderboard;
+    hasRole(currentUser, "ROLE_ADMIN") ||
+    commonsFeatures?.FARMERS_CAN_SEE_LEADERBOARD;
   return (
     <Card data-testid="CommonsOverview">
       <Card.Header as="h5" className="woodenboardtable">
