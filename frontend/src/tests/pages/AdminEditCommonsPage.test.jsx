@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router";
 import axios from "axios";
 import AxiosMockAdapter from "axios-mock-adapter";
 import AdminEditCommonsPage from "main/pages/AdminEditCommonsPage";
+import * as useBackendModule from "main/utils/useBackend";
 import { apiCurrentUserFixtures } from "fixtures/currentUserFixtures";
 import { systemInfoFixtures } from "fixtures/systemInfoFixtures";
 import healthUpdateStrategyListFixtures from "../../fixtures/healthUpdateStrategyListFixtures";
@@ -68,9 +69,11 @@ describe("AdminEditCommonsPage tests", () => {
         belowCapacityHealthUpdateStrategy: "strat2",
         hidden: false,
       });
-      axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 5 } }).reply(200, {
-        FARMERS_CAN_SEE_LEADERBOARD: false,
-      });
+      axiosMock
+        .onGet("/api/commonsfeatures", { params: { commonsId: 5 } })
+        .reply(200, {
+          FARMERS_CAN_SEE_LEADERBOARD: false,
+        });
       axiosMock.onPut("/api/commons/update").reply(200, {
         id: 5,
         name: "Phill's Commons",
@@ -88,6 +91,10 @@ describe("AdminEditCommonsPage tests", () => {
         belowCapacityHealthUpdateStrategy: "strat3",
         hidden: true,
       });
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
     });
 
     const queryClient = new QueryClient();
@@ -152,9 +159,11 @@ describe("AdminEditCommonsPage tests", () => {
     });
 
     test("Updates commons features when form is submitted", async () => {
-      axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 5 } }).reply(200, {
-        FARMERS_CAN_SEE_LEADERBOARD: false,
-      });
+      axiosMock
+        .onGet("/api/commonsfeatures", { params: { commonsId: 5 } })
+        .reply(200, {
+          FARMERS_CAN_SEE_LEADERBOARD: false,
+        });
       axiosMock.onPost("/api/commonsfeatures").reply(200, {
         message: "Commons features updated successfully",
       });
@@ -168,7 +177,9 @@ describe("AdminEditCommonsPage tests", () => {
       );
 
       expect(
-        await screen.findByTestId("CommonsFeaturesForm-FARMERS_CAN_SEE_LEADERBOARD"),
+        await screen.findByTestId(
+          "CommonsFeaturesForm-FARMERS_CAN_SEE_LEADERBOARD",
+        ),
       ).toBeInTheDocument();
 
       const featureCheckbox = screen.getByTestId(
@@ -177,14 +188,120 @@ describe("AdminEditCommonsPage tests", () => {
       fireEvent.click(featureCheckbox);
       expect(featureCheckbox).toBeChecked();
 
-      const submitButton = screen.getByTestId("CommonsFeaturesForm-Submit-Button");
+      const submitButton = screen.getByTestId(
+        "CommonsFeaturesForm-Submit-Button",
+      );
       fireEvent.click(submitButton);
 
-      await waitFor(() => expect(mockToast).toHaveBeenCalled());
+      await waitFor(() =>
+        expect(mockToast).toHaveBeenCalledWith(
+          "Commons features updated successfully",
+        ),
+      );
+      expect(mockToast).toHaveBeenCalledTimes(1);
       expect(axiosMock.history.post.length).toBe(1);
       expect(JSON.parse(axiosMock.history.post[0].data)).toEqual({
         commonsId: 5,
         FARMERS_CAN_SEE_LEADERBOARD: true,
+      });
+    });
+
+    test("Calls useBackend and useBackendMutation with expected commons features args", async () => {
+      const useBackendSpy = vi.spyOn(useBackendModule, "useBackend");
+      const useBackendMutationSpy = vi.spyOn(
+        useBackendModule,
+        "useBackendMutation",
+      );
+
+      useBackendSpy.mockImplementation((queryKey, config, initialData) => {
+        if (queryKey[0] === "/api/commons?id=5") {
+          return {
+            data: {
+              id: 5,
+              name: "Seths Common",
+              startingDate: "2022-03-05",
+              lastDate: "2023-03-05",
+              startingBalance: 1200,
+              cowPrice: 15,
+              milkPrice: 10,
+              degradationRate: 20.3,
+              capacityPerUser: 10,
+              carryingCapacity: 100,
+              showLeaderboard: false,
+              showChat: false,
+              aboveCapacityHealthUpdateStrategy: "strat1",
+              belowCapacityHealthUpdateStrategy: "strat2",
+              hidden: false,
+            },
+            _error: null,
+            _status: "success",
+          };
+        }
+        if (queryKey[0] === "/api/commonsfeatures?commonsId=5") {
+          return {
+            data: { FARMERS_CAN_SEE_LEADERBOARD: false },
+            _error: null,
+            _status: "success",
+          };
+        }
+        return {
+          data: initialData,
+          _error: null,
+          _status: "success",
+        };
+      });
+
+      const mockCommonsFeaturesMutate = vi.fn();
+      useBackendMutationSpy.mockReturnValue({
+        mutate: mockCommonsFeaturesMutate,
+      });
+
+      render(
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter>
+            <AdminEditCommonsPage />
+          </MemoryRouter>
+        </QueryClientProvider>,
+      );
+
+      await waitFor(() => expect(useBackendSpy).toHaveBeenCalled());
+
+      const commonsFeaturesBackendCall = useBackendSpy.mock.calls.find(
+        (call) =>
+          Array.isArray(call[0]) &&
+          call[0][0] === "/api/commonsfeatures?commonsId=5",
+      );
+      expect(commonsFeaturesBackendCall).toBeDefined();
+      expect(commonsFeaturesBackendCall[1]).toEqual({
+        method: "GET",
+        url: "/api/commonsfeatures",
+        params: {
+          commonsId: 5,
+        },
+      });
+      expect(commonsFeaturesBackendCall[2]).toEqual({});
+
+      const commonsFeaturesMutationCall = useBackendMutationSpy.mock.calls.find(
+        (call) =>
+          Array.isArray(call[2]) &&
+          call[2][0] === "/api/commonsfeatures?commonsId=5",
+      );
+
+      expect(commonsFeaturesMutationCall).toBeDefined();
+      expect(commonsFeaturesMutationCall[1]).toEqual({
+        onSuccess: expect.any(Function),
+      });
+
+      const objectToAxiosParams = commonsFeaturesMutationCall[0];
+      expect(
+        objectToAxiosParams({ FARMERS_CAN_SEE_LEADERBOARD: true }),
+      ).toEqual({
+        url: "/api/commonsfeatures",
+        method: "POST",
+        data: {
+          commonsId: 5,
+          FARMERS_CAN_SEE_LEADERBOARD: true,
+        },
       });
     });
 

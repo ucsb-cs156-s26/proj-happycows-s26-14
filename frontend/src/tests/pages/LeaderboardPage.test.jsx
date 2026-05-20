@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router";
 import axios from "axios";
 import AxiosMockAdapter from "axios-mock-adapter";
 import LeaderboardPage from "main/pages/LeaderboardPage";
+import * as useBackendModule from "main/utils/useBackend";
 import { apiCurrentUserFixtures } from "fixtures/currentUserFixtures";
 import { systemInfoFixtures } from "fixtures/systemInfoFixtures";
 import { vi } from "vitest";
@@ -58,9 +59,11 @@ describe("LeaderboardPage tests", () => {
 
   test("renders without crashing for users", async () => {
     setupUser();
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      FARMERS_CAN_SEE_LEADERBOARD: true,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: true,
+      });
     axiosMock
       .onGet("/api/usercommons/commons/all", { params: { commonsId: 1 } })
       .reply(200, []);
@@ -110,9 +113,11 @@ describe("LeaderboardPage tests", () => {
 
   test("renders leaderboard for users when showLeaderboard = true", async () => {
     setupUser();
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      FARMERS_CAN_SEE_LEADERBOARD: true,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: true,
+      });
     axiosMock
       .onGet("/api/usercommons/commons/all", { params: { commonsId: 1 } })
       .reply(200, []);
@@ -132,9 +137,11 @@ describe("LeaderboardPage tests", () => {
 
   test("renders leaderboard error message for users when showLeaderboard = false", async () => {
     setupUser();
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      FARMERS_CAN_SEE_LEADERBOARD: false,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
     const queryClient = new QueryClient();
     render(
       <QueryClientProvider client={queryClient}>
@@ -148,11 +155,53 @@ describe("LeaderboardPage tests", () => {
     ).toBeInTheDocument();
   });
 
+  test("renders leaderboard error message when commonsFeatures is undefined for ordinary users", async () => {
+    setupUser();
+    const useBackendSpy = vi
+      .spyOn(useBackendModule, "useBackend")
+      .mockImplementation((queryKey) => {
+        if (queryKey[0]?.startsWith("/api/usercommons/commons/all")) {
+          return { data: [], error: null, status: "success" };
+        }
+        if (queryKey[0]?.startsWith("/api/commonsfeatures?commonsId=")) {
+          return { data: undefined, error: null, status: "success" };
+        }
+        return { data: [], error: null, status: "success" };
+      });
+
+    const queryClient = new QueryClient();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <LeaderboardPage />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(useBackendSpy).toHaveBeenCalledWith(
+      ["/api/commonsfeatures?commonsId=1"],
+      {
+        method: "GET",
+        url: "/api/commonsfeatures",
+        params: {
+          commonsId: 1,
+        },
+      },
+      {},
+    );
+
+    expect(
+      await screen.findByText("You're not authorized to see the leaderboard."),
+    ).toBeInTheDocument();
+  });
+
   test("renders leaderboard for Admin users when showLeaderboard = false", async () => {
     setupAdmin();
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      FARMERS_CAN_SEE_LEADERBOARD: false,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        FARMERS_CAN_SEE_LEADERBOARD: false,
+      });
     axiosMock
       .onGet("/api/usercommons/commons/all", { params: { commonsId: 1 } })
       .reply(200, []);
@@ -168,5 +217,9 @@ describe("LeaderboardPage tests", () => {
       expect(axiosMock.history.get.length).toEqual(4);
     });
     expect(await screen.findByText("Total Wealth")).toBeInTheDocument();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 });

@@ -4,6 +4,7 @@ import { MemoryRouter } from "react-router";
 import axios from "axios";
 import AxiosMockAdapter from "axios-mock-adapter";
 import CommonsOverview from "main/components/Commons/CommonsOverview";
+import * as useBackendModule from "main/utils/useBackend";
 import { systemInfoFixtures } from "fixtures/systemInfoFixtures";
 import commonsPlusFixtures from "fixtures/commonsPlusFixtures";
 import { currentUserFixtures } from "fixtures/currentUserFixtures";
@@ -28,6 +29,10 @@ describe("CommonsOverview tests", () => {
     axiosMock
       .onGet("/api/systemInfo")
       .reply(200, systemInfoFixtures.showingNeither);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   test("Redirects to the LeaderboardPage for an admin when you click visit", async () => {
@@ -100,5 +105,41 @@ describe("CommonsOverview tests", () => {
         screen.queryByTestId("user-leaderboard-button"),
       ).not.toBeInTheDocument(),
     );
+  });
+
+  test("Handles undefined commonsFeatures safely for ordinary users", async () => {
+    const useBackendSpy = vi
+      .spyOn(useBackendModule, "useBackend")
+      .mockReturnValue({ data: undefined, error: null, status: "success" });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <CommonsOverview
+            commonsPlus={commonsPlusFixtures.oneCommonsPlus[0]}
+            currentUser={currentUserFixtures.userOnly}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    expect(useBackendSpy).toHaveBeenCalledWith(
+      ["/api/commonsfeatures?commonsId=4"],
+      {
+        method: "GET",
+        url: "/api/commonsfeatures",
+        params: {
+          commonsId: 4,
+        },
+      },
+      {},
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId("CommonsOverview")).toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByTestId("user-leaderboard-button"),
+    ).not.toBeInTheDocument();
   });
 });
