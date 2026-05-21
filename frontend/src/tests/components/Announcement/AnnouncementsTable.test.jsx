@@ -1,20 +1,32 @@
-import { fireEvent, render, waitFor, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { announcementFixtures } from "fixtures/announcementFixtures";
 import AnnouncementTable from "main/components/Announcement/AnnouncementTable";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter } from "react-router";
 import { currentUserFixtures } from "fixtures/currentUserFixtures";
+import axios from "axios";
+import AxiosMockAdapter from "axios-mock-adapter";
 import { vi } from "vitest";
 
 const mockedNavigate = vi.fn();
+const mockToast = vi.fn();
 
 vi.mock("react-router", async () => ({
   ...(await vi.importActual("react-router")),
   useNavigate: () => mockedNavigate,
 }));
 
+vi.mock("react-toastify", async () => {
+  const originalModule = await vi.importActual("react-toastify");
+  return {
+    __esModule: true,
+    ...originalModule,
+    toast: (x) => mockToast(x),
+  };
+});
+
 describe("AnnouncementTable tests", () => {
-  const queryClient = new QueryClient();
+  const axiosMock = new AxiosMockAdapter(axios);
 
   const expectedHeaders = [
     "id",
@@ -25,58 +37,61 @@ describe("AnnouncementTable tests", () => {
   const expectedFields = ["id", "startDate", "endDate", "announcementText"];
   const testId = "AnnouncementTable";
 
-  test("renders empty table correctly", () => {
-    // arrange
-    const currentUser = currentUserFixtures.adminUser;
-
-    // act
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AnnouncementTable announcements={[]} currentUser={currentUser} />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-
-    // assert
-    expectedHeaders.forEach((headerText) => {
-      const header = screen.getByText(headerText);
-      expect(header).toBeInTheDocument();
-    });
-
-    expectedFields.forEach((field) => {
-      const fieldElement = screen.queryByTestId(
-        `${testId}-cell-row-0-col-${field}`,
-      );
-      expect(fieldElement).not.toBeInTheDocument();
-    });
-  });
-
-  test("Has the expected column headers, content and buttons for admin user", () => {
-    // arrange
-    const currentUser = currentUserFixtures.adminUser;
-
-    // act
-    render(
+  const renderComponent = ({ announcements, currentUser }) => {
+    const queryClient = new QueryClient();
+    return render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
           <AnnouncementTable
-            announcements={announcementFixtures.threeAnnouncements}
+            announcements={announcements}
             currentUser={currentUser}
           />
         </MemoryRouter>
       </QueryClientProvider>,
     );
+  };
 
-    // assert
+  beforeEach(() => {
+    axiosMock.reset();
+    axiosMock.resetHistory();
+    mockedNavigate.mockClear();
+    mockToast.mockClear();
+  });
+
+  test("renders empty table correctly for admin user", () => {
+    renderComponent({
+      announcements: [],
+      currentUser: currentUserFixtures.adminUser,
+    });
+
     expectedHeaders.forEach((headerText) => {
-      const header = screen.getByText(headerText);
-      expect(header).toBeInTheDocument();
+      expect(screen.getByText(headerText)).toBeInTheDocument();
     });
 
     expectedFields.forEach((field) => {
-      const header = screen.getByTestId(`${testId}-cell-row-0-col-${field}`);
-      expect(header).toBeInTheDocument();
+      expect(
+        screen.queryByTestId(`${testId}-cell-row-0-col-${field}`),
+      ).not.toBeInTheDocument();
+    });
+
+    expect(screen.queryByText("Edit")).toBeInTheDocument();
+    expect(screen.queryByText("Delete")).toBeInTheDocument();
+  });
+
+  test("has the expected column headers, content, and buttons for admin user", () => {
+    renderComponent({
+      announcements: announcementFixtures.threeAnnouncements,
+      currentUser: currentUserFixtures.adminUser,
+    });
+
+    expectedHeaders.forEach((headerText) => {
+      expect(screen.getByText(headerText)).toBeInTheDocument();
+    });
+
+    expectedFields.forEach((field) => {
+      expect(
+        screen.getByTestId(`${testId}-cell-row-0-col-${field}`),
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByTestId(`${testId}-cell-row-0-col-id`)).toHaveTextContent(
@@ -85,6 +100,9 @@ describe("AnnouncementTable tests", () => {
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
     ).toHaveTextContent("2024-12-12T00:00:00");
+    expect(
+      screen.getByTestId(`${testId}-cell-row-0-col-endDate`),
+    ).toHaveTextContent("2025-12-12T00:00:00");
 
     expect(screen.getByTestId(`${testId}-cell-row-1-col-id`)).toHaveTextContent(
       "2",
@@ -92,6 +110,9 @@ describe("AnnouncementTable tests", () => {
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-startDate`),
     ).toHaveTextContent("2022-12-12T00:00:00");
+    expect(
+      screen.getByTestId(`${testId}-cell-row-1-col-announcementText`),
+    ).toHaveTextContent("This is a test announcement for commons id 1");
 
     const editButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Edit-button`,
@@ -106,84 +127,51 @@ describe("AnnouncementTable tests", () => {
     expect(deleteButton).toHaveClass("btn-danger");
   });
 
-  test("Has the expected column headers, content for ordinary user", () => {
-    // arrange
-    const currentUser = currentUserFixtures.userOnly;
+  test("has expected columns and no edit/delete buttons for ordinary user", () => {
+    renderComponent({
+      announcements: announcementFixtures.threeAnnouncements,
+      currentUser: currentUserFixtures.userOnly,
+    });
 
-    // act
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AnnouncementTable
-            announcements={announcementFixtures.threeAnnouncements}
-            currentUser={currentUser}
-          />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-
-    // assert
     expectedHeaders.forEach((headerText) => {
-      const header = screen.getByText(headerText);
-      expect(header).toBeInTheDocument();
+      expect(screen.getByText(headerText)).toBeInTheDocument();
     });
 
     expectedFields.forEach((field) => {
-      const header = screen.getByTestId(`${testId}-cell-row-0-col-${field}`);
-      expect(header).toBeInTheDocument();
+      expect(
+        screen.getByTestId(`${testId}-cell-row-0-col-${field}`),
+      ).toBeInTheDocument();
     });
 
     expect(screen.getByTestId(`${testId}-cell-row-0-col-id`)).toHaveTextContent(
       "1",
     );
     expect(
-      screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+      screen.getByTestId(`${testId}-cell-row-0-col-announcementText`),
+    ).toBeInTheDocument();
 
-    expect(screen.getByTestId(`${testId}-cell-row-1-col-id`)).toHaveTextContent(
-      "2",
-    );
     expect(
-      screen.getByTestId(`${testId}-cell-row-1-col-startDate`),
-    ).toHaveTextContent("2022-12-12T00:00:00");
-
-    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
+      screen.queryByTestId(`${testId}-cell-row-0-col-Edit-button`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`${testId}-cell-row-0-col-Delete-button`),
+    ).not.toBeInTheDocument();
     expect(screen.queryByText("Edit")).not.toBeInTheDocument();
+    expect(screen.queryByText("Delete")).not.toBeInTheDocument();
   });
 
-  test("Edit button navigates to the edit page", async () => {
-    // arrange
-    const currentUser = currentUserFixtures.adminUser;
-
-    // act - render the component
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AnnouncementTable
-            announcements={announcementFixtures.threeAnnouncements}
-            currentUser={currentUser}
-          />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-
-    // assert - check that the expected content is rendered
-    expect(screen.getByTestId(`${testId}-cell-row-0-col-id`)).toHaveTextContent(
-      "1",
-    );
-    expect(
-      screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+  test("Edit button navigates to the edit page using commonsId and id", async () => {
+    renderComponent({
+      announcements: announcementFixtures.threeAnnouncements,
+      currentUser: currentUserFixtures.adminUser,
+    });
 
     const editButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Edit-button`,
     );
-    expect(editButton).toBeInTheDocument();
 
-    // act - click the edit button
     fireEvent.click(editButton);
 
-    // assert - check that the navigate function was called with the expected path
     await waitFor(() =>
       expect(mockedNavigate).toHaveBeenCalledWith(
         "/admin/announcements/1/edit/1",
@@ -191,36 +179,25 @@ describe("AnnouncementTable tests", () => {
     );
   });
 
-  test("Delete button calls delete callback", async () => {
-    // arrange
-    const currentUser = currentUserFixtures.adminUser;
+  test("Delete button sends the correct delete request and shows success toast", async () => {
+    axiosMock
+      .onDelete("/api/announcements/delete", { params: { id: 1 } })
+      .reply(200, "Announcement deleted");
 
-    // act - render the component
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AnnouncementTable
-            announcements={announcementFixtures.threeAnnouncements}
-            currentUser={currentUser}
-          />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-
-    // assert - check that the expected content is rendered
-    expect(screen.getByTestId(`${testId}-cell-row-0-col-id`)).toHaveTextContent(
-      "1",
-    );
-    expect(
-      screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+    renderComponent({
+      announcements: announcementFixtures.threeAnnouncements,
+      currentUser: currentUserFixtures.adminUser,
+    });
 
     const deleteButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Delete-button`,
     );
-    expect(deleteButton).toBeInTheDocument();
 
-    // act - click the delete button
     fireEvent.click(deleteButton);
+
+    await waitFor(() => expect(axiosMock.history.delete.length).toBe(1));
+    expect(axiosMock.history.delete[0].url).toBe("/api/announcements/delete");
+    expect(axiosMock.history.delete[0].params).toEqual({ id: 1 });
+    expect(mockToast).toHaveBeenCalledWith("Announcement deleted");
   });
 });

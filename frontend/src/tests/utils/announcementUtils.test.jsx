@@ -6,6 +6,7 @@ import {
 } from "main/utils/announcementUtils";
 
 const mockToast = vi.fn();
+
 vi.mock("react-toastify", async () => {
   const originalModule = await vi.importActual("react-toastify");
   return {
@@ -16,37 +17,48 @@ vi.mock("react-toastify", async () => {
 });
 
 describe("AnnouncementUtils", () => {
+  beforeEach(() => {
+    mockToast.mockClear();
+  });
+
   describe("onDeleteSuccess", () => {
-    test("It puts the message on console.log and in a toast", () => {
-      // arrange
+    test("logs the backend message and shows the fixed delete toast", () => {
       const restoreConsole = mockConsole();
 
-      // act
-      onDeleteSuccess("Announcement deleted");
+      onDeleteSuccess("Server says announcement 123 was deleted");
 
-      // assert
+      expect(console.log).toHaveBeenCalledTimes(1);
+      expect(console.log).toHaveBeenCalledWith(
+        "Server says announcement 123 was deleted",
+      );
+      expect(mockToast).toHaveBeenCalledTimes(1);
       expect(mockToast).toHaveBeenCalledWith("Announcement deleted");
-      expect(console.log).toHaveBeenCalled();
-      const message = console.log.mock.calls[0][0];
-      expect(message).toMatch("Announcement deleted");
 
       restoreConsole();
     });
   });
+
   describe("cellToAxiosParamsDelete", () => {
-    test("It returns the correct params", () => {
-      // arrange
+    test("returns the correct axios params for deleting row id 1", () => {
       const cell = { row: { values: { id: 1 } } };
 
-      // act
       const result = cellToAxiosParamsDelete(cell);
 
-      // assert
       expect(result).toEqual({
         url: "/api/announcements/delete",
         method: "DELETE",
         params: { id: 1 },
       });
+    });
+
+    test("uses the id from the table cell row values", () => {
+      const cell = { row: { values: { id: 42 } } };
+
+      const result = cellToAxiosParamsDelete(cell);
+
+      expect(result.url).toBe("/api/announcements/delete");
+      expect(result.method).toBe("DELETE");
+      expect(result.params).toEqual({ id: 42 });
     });
   });
 });

@@ -49,6 +49,7 @@ describe("AdminCreateAnnouncementsPage tests", () => {
     axiosMock.resetHistory();
     mockedNavigate.mockClear();
     mockToast.mockClear();
+
     axiosMock
       .onGet("/api/currentUser")
       .reply(200, apiCurrentUserFixtures.adminUser);
@@ -72,13 +73,27 @@ describe("AdminCreateAnnouncementsPage tests", () => {
     expect(
       await screen.findByText("for Commons Sample Commons"),
     ).toBeInTheDocument();
+
+    const commonsGet = axiosMock.history.get.find(
+      (x) => x.url === "/api/commons/plus",
+    );
+    expect(commonsGet.params).toEqual({ id: 1 });
   });
 
   test("correct href for create announcements button as an admin", async () => {
     const queryClient = new QueryClient();
-    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {
-      content: [],
+
+    axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
     });
+    axiosMock
+      .onGet("/api/announcements/getbycommonsid", { params: { commonsId: 1 } })
+      .reply(200, {
+        content: [],
+      });
 
     render(
       <QueryClientProvider client={queryClient}>
@@ -95,7 +110,7 @@ describe("AdminCreateAnnouncementsPage tests", () => {
     );
   });
 
-  test("When you fill in all fields and click submit, the right request is sent", async () => {
+  test("when all fields are filled in and submitted, the right POST request is sent", async () => {
     axiosMock.onPost("/api/announcements/post").reply(200, {
       id: 17,
       commonsId: 1,
@@ -117,24 +132,29 @@ describe("AdminCreateAnnouncementsPage tests", () => {
     fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
       target: { value: "Full announcement" },
     });
+
     fireEvent.click(screen.getByTestId(`${testId}-submit`));
 
     await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+    expect(axiosMock.history.post[0].url).toBe("/api/announcements/post");
     expect(axiosMock.history.post[0].params).toEqual({
       commonsId: 1,
-      startDate: "2026-05-20T12:30",
       endDate: "2026-05-21T12:30",
       announcementText: "Full announcement",
+      startDate: "2026-05-20T12:30",
     });
+
     expect(mockToast).toHaveBeenCalledWith("New Announcement Created - id: 17");
     expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
   });
 
-  test("When startDate is blank, startDate is omitted from request params", async () => {
+  test("when startDate and endDate are blank, startDate is omitted and endDate is null", async () => {
     axiosMock.onPost("/api/announcements/post").reply(200, {
       id: 18,
       commonsId: 1,
-      announcementText: "No start date announcement",
+      startDate: null,
+      endDate: null,
+      announcementText: "No date announcement",
     });
 
     renderComponent();
@@ -142,16 +162,41 @@ describe("AdminCreateAnnouncementsPage tests", () => {
     await screen.findByText("Create Announcement");
 
     fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
-      target: { value: "No start date announcement" },
+      target: { value: "No date announcement" },
     });
+
     fireEvent.click(screen.getByTestId(`${testId}-submit`));
 
     await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+    expect(axiosMock.history.post[0].url).toBe("/api/announcements/post");
     expect(axiosMock.history.post[0].params).toEqual({
       commonsId: 1,
       endDate: null,
-      announcementText: "No start date announcement",
+      announcementText: "No date announcement",
     });
     expect(axiosMock.history.post[0].params).not.toHaveProperty("startDate");
+
+    expect(mockToast).toHaveBeenCalledWith("New Announcement Created - id: 18");
+    expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
+  });
+
+  test("does not send POST request when announcement text is missing", async () => {
+    axiosMock.onPost("/api/announcements/post").reply(200, {});
+
+    renderComponent();
+
+    await screen.findByText("Create Announcement");
+
+    fireEvent.change(screen.getByTestId(`${testId}-startDate`), {
+      target: { value: "2026-05-20T12:30" },
+    });
+    fireEvent.click(screen.getByTestId(`${testId}-submit`));
+
+    expect(
+      await screen.findByText("Announcement is required."),
+    ).toBeInTheDocument();
+    expect(axiosMock.history.post.length).toBe(0);
+    expect(mockToast).not.toHaveBeenCalled();
+    expect(mockedNavigate).not.toHaveBeenCalled();
   });
 });
