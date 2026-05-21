@@ -1,15 +1,16 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter } from "react-router";
 import axios from "axios";
 import AxiosMockAdapter from "axios-mock-adapter";
 import AdminCreateAnnouncementsPage from "main/pages/AdminCreateAnnouncementsPage";
+import AdminAnnouncementsPage from "main/pages/AdminAnnouncementsPage";
 import { apiCurrentUserFixtures } from "fixtures/currentUserFixtures";
 import { systemInfoFixtures } from "fixtures/systemInfoFixtures";
-import AdminAnnouncementsPage from "main/pages/AdminAnnouncementsPage";
 import { vi } from "vitest";
 
 const mockedNavigate = vi.fn();
+const mockToast = vi.fn();
 
 vi.mock("react-router", async () => ({
   ...(await vi.importActual("react-router")),
@@ -19,37 +20,41 @@ vi.mock("react-router", async () => ({
   useNavigate: () => mockedNavigate,
 }));
 
+vi.mock("react-toastify", async () => {
+  const originalModule = await vi.importActual("react-toastify");
+  return {
+    __esModule: true,
+    ...originalModule,
+    toast: (x) => mockToast(x),
+  };
+});
+
 describe("AdminCreateAnnouncementsPage tests", () => {
   const axiosMock = new AxiosMockAdapter(axios);
-  const queryClient = new QueryClient();
+  const testId = "AnnouncementForm";
 
-  beforeEach(() => {
-    axiosMock.reset();
-    axiosMock.resetHistory();
-    axiosMock
-      .onGet("/api/currentUser")
-      .reply(200, apiCurrentUserFixtures.adminUser);
-    axiosMock
-      .onGet("/api/systemInfo")
-      .reply(200, systemInfoFixtures.showingNeither);
-  });
-
-  test("renders page without crashing", async () => {
-    render(
+  const renderComponent = () => {
+    const queryClient = new QueryClient();
+    return render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
           <AdminCreateAnnouncementsPage />
         </MemoryRouter>
       </QueryClientProvider>,
     );
+  };
 
-    expect(await screen.findByText("Create Announcement")).toBeInTheDocument();
-  });
-
-  test("correct href for create announcements button as an admin", async () => {
+  beforeEach(() => {
+    axiosMock.reset();
+    axiosMock.resetHistory();
+    mockedNavigate.mockClear();
+    mockToast.mockClear();
     axiosMock
       .onGet("/api/currentUser")
       .reply(200, apiCurrentUserFixtures.adminUser);
+    axiosMock
+      .onGet("/api/systemInfo")
+      .reply(200, systemInfoFixtures.showingNeither);
     axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
       commons: {
         id: 1,
@@ -57,6 +62,22 @@ describe("AdminCreateAnnouncementsPage tests", () => {
       },
       totalPlayers: 5,
       totalCows: 5,
+    });
+  });
+
+  test("renders page with commons name", async () => {
+    renderComponent();
+
+    expect(await screen.findByText("Create Announcement")).toBeInTheDocument();
+    expect(
+      await screen.findByText("for Commons Sample Commons"),
+    ).toBeInTheDocument();
+  });
+
+  test("correct href for create announcements button as an admin", async () => {
+    const queryClient = new QueryClient();
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {
+      content: [],
     });
 
     render(
@@ -72,5 +93,65 @@ describe("AdminCreateAnnouncementsPage tests", () => {
       "href",
       "/admin/announcements/1/create",
     );
+  });
+
+  test("When you fill in all fields and click submit, the right request is sent", async () => {
+    axiosMock.onPost("/api/announcements/post").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:00",
+      endDate: "2026-05-21T12:30:00",
+      announcementText: "Full announcement",
+    });
+
+    renderComponent();
+
+    await screen.findByText("Create Announcement");
+
+    fireEvent.change(screen.getByTestId(`${testId}-startDate`), {
+      target: { value: "2026-05-20T12:30" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
+      target: { value: "2026-05-21T12:30" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Full announcement" },
+    });
+    fireEvent.click(screen.getByTestId(`${testId}-submit`));
+
+    await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+    expect(axiosMock.history.post[0].params).toEqual({
+      commonsId: 1,
+      startDate: "2026-05-20T12:30",
+      endDate: "2026-05-21T12:30",
+      announcementText: "Full announcement",
+    });
+    expect(mockToast).toHaveBeenCalledWith("New Announcement Created - id: 17");
+    expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
+  });
+
+  test("When startDate is blank, startDate is omitted from request params", async () => {
+    axiosMock.onPost("/api/announcements/post").reply(200, {
+      id: 18,
+      commonsId: 1,
+      announcementText: "No start date announcement",
+    });
+
+    renderComponent();
+
+    await screen.findByText("Create Announcement");
+
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "No start date announcement" },
+    });
+    fireEvent.click(screen.getByTestId(`${testId}-submit`));
+
+    await waitFor(() => expect(axiosMock.history.post.length).toBe(1));
+    expect(axiosMock.history.post[0].params).toEqual({
+      commonsId: 1,
+      endDate: null,
+      announcementText: "No start date announcement",
+    });
+    expect(axiosMock.history.post[0].params).not.toHaveProperty("startDate");
   });
 });

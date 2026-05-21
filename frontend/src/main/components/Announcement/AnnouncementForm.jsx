@@ -55,13 +55,11 @@ function AnnouncementForm({
           type="datetime-local"
           isInvalid={Boolean(errors.startDate)}
           {...register("startDate", {
-            required: "StartDate is required.",
             pattern: isodate_regex,
           })}
         />
         <Form.Control.Feedback type="invalid">
-          {errors.startDate &&
-            "Start Date is required and must be provided in ISO format."}
+          {errors.startDate && "Start Date must be provided in ISO format."}
         </Form.Control.Feedback>
       </Form.Group>
 

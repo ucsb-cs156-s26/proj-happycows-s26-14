@@ -185,7 +185,9 @@ describe("AnnouncementTable tests", () => {
 
     // assert - check that the navigate function was called with the expected path
     await waitFor(() =>
-      expect(mockedNavigate).toHaveBeenCalledWith("/announcements/edit/1"),
+      expect(mockedNavigate).toHaveBeenCalledWith(
+        "/admin/announcements/1/edit/1",
+      ),
     );
   });
 

@@ -2,12 +2,12 @@ import { toast } from "react-toastify";
 
 export function onDeleteSuccess(message) {
   console.log(message);
-  toast(message);
+  toast("Announcement deleted");
 }
 
 export function cellToAxiosParamsDelete(cell) {
   return {
-    url: "/api/announcements",
+    url: "/api/announcements/delete",
     method: "DELETE",
     params: {
       id: cell.row.values.id,

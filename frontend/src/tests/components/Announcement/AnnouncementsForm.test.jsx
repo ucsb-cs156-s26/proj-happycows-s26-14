@@ -86,10 +86,14 @@ describe("AnnouncementForm tests", () => {
     const submitButton = screen.getByText(/Create/);
     fireEvent.click(submitButton);
 
-    await screen.findByText(
-      /Start Date is required and must be provided in ISO format./,
-    );
-    expect(screen.getByText(/Announcement is required./)).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        /Start Date is required and must be provided in ISO format./,
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByText(/Announcement is required./),
+    ).toBeInTheDocument();
 
     // const endInput = screen.getByTestId(`${testId}-end`);
     // fireEvent.change(endInput, { target: { value: "a" } });
@@ -98,5 +102,37 @@ describe("AnnouncementForm tests", () => {
     // await waitFor(() => {
     //     expect(screen.getByText(/End must be provided in ISO format./)).toBeInTheDocument();
     // });
+  });
+
+  test("startDate is optional when announcementText is provided", async () => {
+    const submitAction = vi.fn();
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AnnouncementForm submitAction={submitAction} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    expect(await screen.findByText(/Create/)).toBeInTheDocument();
+
+    const announcementTextField = screen.getByTestId(
+      `${testId}-announcementText`,
+    );
+    fireEvent.change(announcementTextField, {
+      target: { value: "Announcement with no start date" },
+    });
+
+    const submitButton = screen.getByText(/Create/);
+    fireEvent.click(submitButton);
+
+    await waitFor(() => expect(submitAction).toHaveBeenCalled());
+
+    expect(submitAction.mock.calls[0][0]).toEqual({
+      startDate: "",
+      endDate: "",
+      announcementText: "Announcement with no start date",
+    });
   });
 });

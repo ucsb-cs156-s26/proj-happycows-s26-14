@@ -5,11 +5,22 @@ import { useParams, useNavigate } from "react-router";
 import { useBackend, useBackendMutation } from "main/utils/useBackend";
 import { toast } from "react-toastify";
 
-export default function AdminCreateAnnouncementsPage() {
-  const { commonsId } = useParams();
+export default function AdminEditAnnouncementsPage() {
+  const { commonsId, id } = useParams();
   const navigate = useNavigate();
 
   // Stryker disable all
+  const { data: announcement } = useBackend(
+    [`/api/announcements/getbyid?id=${id}`],
+    {
+      method: "GET",
+      url: "/api/announcements/getbyid",
+      params: {
+        id: id,
+      },
+    },
+  );
+
   const { data: commonsPlus } = useBackend(
     [`/api/commons/plus?id=${commonsId}`],
     {
@@ -24,26 +35,33 @@ export default function AdminCreateAnnouncementsPage() {
 
   const commonsName = commonsPlus?.commons?.name;
 
-  const objectToAxiosParams = (announcement) => {
-    const params = {
-      commonsId: commonsId,
-      endDate: announcement.endDate || null,
-      announcementText: announcement.announcementText,
-    };
-
-    if (announcement.startDate) {
-      params.startDate = announcement.startDate;
-    }
-
-    return {
-      url: "/api/announcements/post",
-      method: "POST",
-      params,
-    };
+  const formatDateForInput = (dateString) => {
+    if (!dateString) return "";
+    return dateString.substring(0, 16);
   };
 
+  const initialContents = announcement
+    ? {
+        ...announcement,
+        startDate: formatDateForInput(announcement.startDate),
+        endDate: formatDateForInput(announcement.endDate),
+      }
+    : null;
+
+  const objectToAxiosParams = (announcement) => ({
+    url: "/api/announcements/put",
+    method: "PUT",
+    params: {
+      id: id,
+      commonsId: commonsId,
+      startDate: announcement.startDate,
+      endDate: announcement.endDate || null,
+      announcementText: announcement.announcementText,
+    },
+  });
+
   const onSuccess = (announcement) => {
-    toast(`New Announcement Created - id: ${announcement.id}`);
+    toast(`Announcement Updated - id: ${announcement.id}`);
     navigate(`/admin/announcements/${commonsId}`);
   };
 
@@ -60,9 +78,15 @@ export default function AdminCreateAnnouncementsPage() {
   return (
     <BasicLayout>
       <div className="pt-2">
-        <h1>Create Announcement</h1>
+        <h1>Edit Announcement</h1>
         <h2>for Commons {commonsName}</h2>
-        <AnnouncementForm submitAction={submitAction} />
+        {initialContents && (
+          <AnnouncementForm
+            submitAction={submitAction}
+            buttonLabel={"Update"}
+            initialContents={initialContents}
+          />
+        )}
       </div>
     </BasicLayout>
   );

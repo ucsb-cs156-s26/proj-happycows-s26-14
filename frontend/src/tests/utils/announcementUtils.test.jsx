@@ -22,13 +22,13 @@ describe("AnnouncementUtils", () => {
       const restoreConsole = mockConsole();
 
       // act
-      onDeleteSuccess("abc");
+      onDeleteSuccess("Announcement deleted");
 
       // assert
-      expect(mockToast).toHaveBeenCalledWith("abc");
+      expect(mockToast).toHaveBeenCalledWith("Announcement deleted");
       expect(console.log).toHaveBeenCalled();
       const message = console.log.mock.calls[0][0];
-      expect(message).toMatch("abc");
+      expect(message).toMatch("Announcement deleted");
 
       restoreConsole();
     });
@@ -43,7 +43,7 @@ describe("AnnouncementUtils", () => {
 
       // assert
       expect(result).toEqual({
-        url: "/api/announcements",
+        url: "/api/announcements/delete",
         method: "DELETE",
         params: { id: 1 },
       });
