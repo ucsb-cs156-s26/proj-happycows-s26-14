@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { MemoryRouter } from "react-router";
 import axios from "axios";
@@ -23,6 +23,7 @@ vi.mock("react-router", async () => ({
 
 describe("AdminAnnouncementsPage tests", () => {
   const axiosMock = new AxiosMockAdapter(axios);
+  const testId = "AnnouncementTable";
 
   const renderComponent = () => {
     const queryClient = new QueryClient();
@@ -43,23 +44,23 @@ describe("AdminAnnouncementsPage tests", () => {
     axiosMock
       .onGet("/api/currentUser")
       .reply(200, apiCurrentUserFixtures.adminUser);
+
     axiosMock
       .onGet("/api/systemInfo")
       .reply(200, systemInfoFixtures.showingNeither);
   });
 
   test("renders page without crashing when there are no announcements", async () => {
-    axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
       commons: {
         id: 1,
         name: "Sample Commons",
       },
     });
-    axiosMock
-      .onGet("/api/announcements/getbycommonsid", { params: { commonsId: 1 } })
-      .reply(200, {
-        content: [],
-      });
+
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {
+      content: [],
+    });
 
     renderComponent();
 
@@ -78,7 +79,7 @@ describe("AdminAnnouncementsPage tests", () => {
     expect(screen.getByText("Announcement")).toBeInTheDocument();
 
     expect(
-      screen.queryByTestId("AnnouncementTable-cell-row-0-col-id"),
+      screen.queryByTestId(`${testId}-cell-row-0-col-id`),
     ).not.toBeInTheDocument();
 
     const commonsGet = axiosMock.history.get.find(
@@ -92,8 +93,8 @@ describe("AdminAnnouncementsPage tests", () => {
     expect(announcementsGet.params).toEqual({ commonsId: 1 });
   });
 
-  test("renders announcements with correct commons name", async () => {
-    axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
+  test("renders announcements with correct commons name and admin buttons", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
       commons: {
         id: 1,
         name: "Sample Commons",
@@ -101,11 +102,10 @@ describe("AdminAnnouncementsPage tests", () => {
       totalPlayers: 5,
       totalCows: 5,
     });
-    axiosMock
-      .onGet("/api/announcements/getbycommonsid", { params: { commonsId: 1 } })
-      .reply(200, {
-        content: announcementFixtures.threeAnnouncements,
-      });
+
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {
+      content: announcementFixtures.threeAnnouncements,
+    });
 
     renderComponent();
 
@@ -114,14 +114,40 @@ describe("AdminAnnouncementsPage tests", () => {
     ).toBeInTheDocument();
 
     expect(
-      await screen.findByTestId("AnnouncementTable-cell-row-0-col-id"),
+      await screen.findByTestId(`${testId}-cell-row-0-col-id`),
     ).toHaveTextContent("1");
+
     expect(
-      screen.getByTestId("AnnouncementTable-cell-row-0-col-startDate"),
+      screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
     ).toHaveTextContent("2024-12-12T00:00:00");
+
     expect(
-      screen.getByTestId("AnnouncementTable-cell-row-1-col-announcementText"),
+      screen.getByTestId(`${testId}-cell-row-0-col-endDate`),
+    ).toHaveTextContent("2025-12-12T00:00:00");
+
+    expect(
+      screen.getByTestId(`${testId}-cell-row-1-col-announcementText`),
     ).toHaveTextContent("This is a test announcement for commons id 1");
+
+    const editButton = screen.getByTestId(
+      `${testId}-cell-row-0-col-Edit-button`,
+    );
+    expect(editButton).toBeInTheDocument();
+    expect(editButton).toHaveClass("btn-primary");
+
+    const deleteButton = screen.getByTestId(
+      `${testId}-cell-row-0-col-Delete-button`,
+    );
+    expect(deleteButton).toBeInTheDocument();
+    expect(deleteButton).toHaveClass("btn-danger");
+
+    fireEvent.click(editButton);
+
+    await waitFor(() =>
+      expect(mockedNavigate).toHaveBeenCalledWith(
+        "/admin/announcements/1/edit/1",
+      ),
+    );
 
     const announcementsGet = axiosMock.history.get.find(
       (x) => x.url === "/api/announcements/getbycommonsid",
@@ -130,16 +156,14 @@ describe("AdminAnnouncementsPage tests", () => {
   });
 
   test("renders empty announcements table when announcementsPage content is missing", async () => {
-    axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
       commons: {
         id: 1,
         name: "Sample Commons",
       },
     });
 
-    axiosMock
-      .onGet("/api/announcements/getbycommonsid", { params: { commonsId: 1 } })
-      .reply(200, {});
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {});
 
     renderComponent();
 
@@ -158,7 +182,7 @@ describe("AdminAnnouncementsPage tests", () => {
     expect(screen.getByText("Announcement")).toBeInTheDocument();
 
     expect(
-      screen.queryByTestId("AnnouncementTable-cell-row-0-col-id"),
+      screen.queryByTestId(`${testId}-cell-row-0-col-id`),
     ).not.toBeInTheDocument();
 
     const announcementsGet = axiosMock.history.get.find(
@@ -166,10 +190,43 @@ describe("AdminAnnouncementsPage tests", () => {
     );
     expect(announcementsGet.params).toEqual({ commonsId: 1 });
   });
-  
+
+  test("renders even when commonsPlus has no commons object", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {});
+
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200, {
+      content: [],
+    });
+
+    renderComponent();
+
+    expect(
+      await screen.findByText("Announcements for Commons:"),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("Create Announcement")).toHaveAttribute(
+      "href",
+      "/admin/announcements/1/create",
+    );
+
+    expect(screen.getByText("id")).toBeInTheDocument();
+    expect(screen.getByText("Start Date ISO Format")).toBeInTheDocument();
+    expect(screen.getByText("End Date ISO Format")).toBeInTheDocument();
+    expect(screen.getByText("Announcement")).toBeInTheDocument();
+
+    expect(
+      screen.queryByTestId(`${testId}-cell-row-0-col-id`),
+    ).not.toBeInTheDocument();
+
+    const commonsGet = axiosMock.history.get.find(
+      (x) => x.url === "/api/commons/plus",
+    );
+    expect(commonsGet.params).toEqual({ id: 1 });
+  });
+
   test("correct href for announcements button as an admin on commons list page", async () => {
     const queryClient = new QueryClient();
-    const testId = "CommonsTable";
+    const commonsTableTestId = "CommonsTable";
 
     axiosMock
       .onGet("/api/commons/allplus")
@@ -184,15 +241,56 @@ describe("AdminAnnouncementsPage tests", () => {
     );
 
     expect(
-      await screen.findByTestId(`${testId}-cell-row-0-col-commons.id`),
+      await screen.findByTestId(
+        `${commonsTableTestId}-cell-row-0-col-commons.id`,
+      ),
     ).toHaveTextContent("1");
 
     const announcementsButton = screen.getByTestId(
-      `${testId}-cell-row-0-col-Announcements-button`,
+      `${commonsTableTestId}-cell-row-0-col-Announcements-button`,
     );
+
     expect(announcementsButton).toHaveAttribute(
       "href",
       "/admin/announcements/1",
     );
+  });
+
+  test("renders empty announcements table when announcementsPage is undefined", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    // This intentionally returns 200 with no response body.
+    // That makes announcementsPage become undefined after the backend call finishes.
+    axiosMock.onGet("/api/announcements/getbycommonsid").reply(200);
+
+    renderComponent();
+
+    expect(
+      await screen.findByText("Announcements for Commons: Sample Commons"),
+    ).toBeInTheDocument();
+
+    expect(screen.getByText("Create Announcement")).toHaveAttribute(
+      "href",
+      "/admin/announcements/1/create",
+    );
+
+    expect(screen.getByText("id")).toBeInTheDocument();
+    expect(screen.getByText("Start Date ISO Format")).toBeInTheDocument();
+    expect(screen.getByText("End Date ISO Format")).toBeInTheDocument();
+    expect(screen.getByText("Announcement")).toBeInTheDocument();
+
+    expect(
+      screen.queryByTestId(`${testId}-cell-row-0-col-id`),
+    ).not.toBeInTheDocument();
+
+    const announcementsGet = axiosMock.history.get.find(
+      (x) => x.url === "/api/announcements/getbycommonsid",
+    );
+    expect(announcementsGet.params).toEqual({ commonsId: 1 });
   });
 });

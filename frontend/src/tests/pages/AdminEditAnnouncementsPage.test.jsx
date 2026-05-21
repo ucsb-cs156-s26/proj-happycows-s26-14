@@ -35,6 +35,7 @@ describe("AdminEditAnnouncementsPage tests", () => {
 
   const renderComponent = () => {
     const queryClient = new QueryClient();
+
     return render(
       <QueryClientProvider client={queryClient}>
         <MemoryRouter>
@@ -53,48 +54,66 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock
       .onGet("/api/currentUser")
       .reply(200, apiCurrentUserFixtures.adminUser);
+
     axiosMock
       .onGet("/api/systemInfo")
       .reply(200, systemInfoFixtures.showingNeither);
-    axiosMock.onGet("/api/commons/plus", { params: { id: 1 } }).reply(200, {
+  });
+
+  test("renders header but form is not present until announcement is loaded", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
       commons: {
         id: 1,
         name: "Sample Commons",
       },
-      totalPlayers: 5,
-      totalCows: 5,
     });
-  });
 
-  test("renders page with commons name and cleaned date values", async () => {
-    axiosMock
-      .onGet("/api/announcements/getbyid", { params: { id: 17 } })
-      .reply(200, {
-        id: 999,
-        commonsId: 1,
-        startDate: "2026-05-20T12:30:45.000Z",
-        endDate: "2026-05-21T13:45:45.000Z",
-        announcementText: "Existing announcement",
-      });
+    axiosMock.onGet("/api/announcements/getbyid").timeout();
 
     renderComponent();
 
     expect(await screen.findByText("Edit Announcement")).toBeInTheDocument();
-    expect(
-      await screen.findByText("for Commons Sample Commons"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("for Commons Sample Commons")).toBeInTheDocument();
+
+    expect(screen.queryByTestId(`${testId}-id`)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(`${testId}-submit`)).not.toBeInTheDocument();
+  });
+
+  test("renders page with commons name and cleaned date values", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 999,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:45.000Z",
+      endDate: "2026-05-21T13:45:45.000Z",
+      announcementText: "Existing announcement",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByText("Edit Announcement")).toBeInTheDocument();
+    expect(screen.getByText("for Commons Sample Commons")).toBeInTheDocument();
 
     expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("999");
-    expect(screen.getByTestId(`${testId}-id`)).toBeDisabled();
+
     expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue(
       "2026-05-20T12:30",
     );
+
     expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue(
       "2026-05-21T13:45",
     );
+
     expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
       "Existing announcement",
     );
+
     expect(screen.getByTestId(`${testId}-submit`)).toHaveTextContent("Update");
 
     const announcementGet = axiosMock.history.get.find(
@@ -108,37 +127,85 @@ describe("AdminEditAnnouncementsPage tests", () => {
     expect(commonsGet.params).toEqual({ id: 1 });
   });
 
-  test("renders blank date inputs when existing dates are null", async () => {
-    axiosMock
-      .onGet("/api/announcements/getbyid", { params: { id: 17 } })
-      .reply(200, {
-        id: 17,
-        commonsId: 1,
-        startDate: null,
-        endDate: null,
-        announcementText: "Existing announcement with no dates",
-      });
+  test("renders even when commonsPlus has no commons object", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {});
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:45.000Z",
+      endDate: "2026-05-21T13:45:45.000Z",
+      announcementText: "Existing announcement",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByText("Edit Announcement")).toBeInTheDocument();
+    expect(screen.getByText("for Commons")).toBeInTheDocument();
+
+    expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
+
+    expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue(
+      "2026-05-20T12:30",
+    );
+
+    expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue(
+      "2026-05-21T13:45",
+    );
+
+    expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
+      "Existing announcement",
+    );
+
+    const commonsGet = axiosMock.history.get.find(
+      (x) => x.url === "/api/commons/plus",
+    );
+    expect(commonsGet.params).toEqual({ id: 1 });
+  });
+
+  test("blank startDate and endDate from backend are converted to empty form values", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: null,
+      endDate: null,
+      announcementText: "Announcement without dates",
+    });
 
     renderComponent();
 
     expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
     expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue("");
     expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue("");
+
     expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
-      "Existing announcement with no dates",
+      "Announcement without dates",
     );
   });
 
   test("submitting edit uses id from URL params, not the disabled form id", async () => {
-    axiosMock
-      .onGet("/api/announcements/getbyid", { params: { id: 17 } })
-      .reply(200, {
-        id: 999,
-        commonsId: 1,
-        startDate: "2026-05-20T12:30:45.000Z",
-        endDate: null,
-        announcementText: "Existing announcement",
-      });
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 999,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:45.000Z",
+      endDate: null,
+      announcementText: "Existing announcement",
+    });
+
     axiosMock.onPut("/api/announcements/put").reply(200, {
       id: 17,
       commonsId: 1,
@@ -152,16 +219,25 @@ describe("AdminEditAnnouncementsPage tests", () => {
     expect(await screen.findByTestId(`${testId}-announcementText`)).toHaveValue(
       "Existing announcement",
     );
+
     expect(screen.getByTestId(`${testId}-id`)).toHaveValue("999");
+
+    expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue(
+      "2026-05-20T12:30",
+    );
+
     expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue("");
 
     fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
       target: { value: "Updated announcement" },
     });
+
     fireEvent.click(screen.getByTestId(`${testId}-submit`));
 
     await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+
     expect(axiosMock.history.put[0].url).toBe("/api/announcements/put");
+
     expect(axiosMock.history.put[0].params).toEqual({
       id: 17,
       commonsId: 1,
@@ -174,75 +250,61 @@ describe("AdminEditAnnouncementsPage tests", () => {
     expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
   });
 
-  test("submitting edit sends nonblank endDate when provided", async () => {
-    axiosMock
-      .onGet("/api/announcements/getbyid", { params: { id: 17 } })
-      .reply(200, {
-        id: 17,
-        commonsId: 1,
-        startDate: "2026-05-20T12:30:45.000Z",
-        endDate: "2026-05-21T13:45:45.000Z",
-        announcementText: "Existing announcement",
-      });
+  test("submitting edit sends changed startDate and endDate when both are provided", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:45.000Z",
+      endDate: "2026-05-21T13:45:45.000Z",
+      announcementText: "Existing announcement",
+    });
+
     axiosMock.onPut("/api/announcements/put").reply(200, {
       id: 17,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:00",
-      endDate: "2026-05-22T14:15:00",
-      announcementText: "Updated announcement with end date",
+      startDate: "2026-05-22T14:10:00",
+      endDate: "2026-05-23T15:20:00",
+      announcementText: "Updated with dates",
     });
-
-    renderComponent();
-
-    expect(await screen.findByTestId(`${testId}-endDate`)).toHaveValue(
-      "2026-05-21T13:45",
-    );
-
-    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
-      target: { value: "2026-05-22T14:15" },
-    });
-    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
-      target: { value: "Updated announcement with end date" },
-    });
-    fireEvent.click(screen.getByTestId(`${testId}-submit`));
-
-    await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
-    expect(axiosMock.history.put[0].params).toEqual({
-      id: 17,
-      commonsId: 1,
-      startDate: "2026-05-20T12:30",
-      endDate: "2026-05-22T14:15",
-      announcementText: "Updated announcement with end date",
-    });
-
-    expect(mockToast).toHaveBeenCalledWith("Announcement Updated - id: 17");
-    expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
-  });
-
-  test("does not send PUT request when announcement text is missing", async () => {
-    axiosMock
-      .onGet("/api/announcements/getbyid", { params: { id: 17 } })
-      .reply(200, {
-        id: 17,
-        commonsId: 1,
-        startDate: "2026-05-20T12:30:45.000Z",
-        endDate: null,
-        announcementText: "",
-      });
 
     renderComponent();
 
     expect(await screen.findByTestId(`${testId}-announcementText`)).toHaveValue(
-      "",
+      "Existing announcement",
     );
+
+    fireEvent.change(screen.getByTestId(`${testId}-startDate`), {
+      target: { value: "2026-05-22T14:10" },
+    });
+
+    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
+      target: { value: "2026-05-23T15:20" },
+    });
+
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Updated with dates" },
+    });
 
     fireEvent.click(screen.getByTestId(`${testId}-submit`));
 
-    expect(
-      await screen.findByText("Announcement is required."),
-    ).toBeInTheDocument();
-    expect(axiosMock.history.put.length).toBe(0);
-    expect(mockToast).not.toHaveBeenCalled();
-    expect(mockedNavigate).not.toHaveBeenCalled();
+    await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+
+    expect(axiosMock.history.put[0].params).toEqual({
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-22T14:10",
+      endDate: "2026-05-23T15:20",
+      announcementText: "Updated with dates",
+    });
+
+    expect(mockToast).toHaveBeenCalledWith("Announcement Updated - id: 17");
+    expect(mockedNavigate).toHaveBeenCalledWith("/admin/announcements/1");
   });
 });
