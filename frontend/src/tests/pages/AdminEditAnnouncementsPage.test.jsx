@@ -190,6 +190,104 @@ describe("AdminEditAnnouncementsPage tests", () => {
     );
   });
 
+  test("date values without timezone are trimmed for datetime-local inputs", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-20T12:30:45",
+      endDate: "2026-05-21T13:45:45",
+      announcementText: "Announcement with local dates",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
+    expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue(
+      "2026-05-20T12:30",
+    );
+    expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue(
+      "2026-05-21T13:45",
+    );
+    expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
+      "Announcement with local dates",
+    );
+  });
+
+  test("invalid timezone date values are converted to empty form values", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "not-a-dateZ",
+      endDate: "also-not-a-date-07:00",
+      announcementText: "Announcement with invalid dates",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
+    expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue("");
+    expect(screen.getByTestId(`${testId}-endDate`)).toHaveValue("");
+    expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
+      "Announcement with invalid dates",
+    );
+  });
+
+  test("timezone dates with hour 24 are normalized to hour 00", async () => {
+    const dateTimeFormatSpy = vi
+      .spyOn(Intl, "DateTimeFormat")
+      .mockImplementation(() => ({
+        formatToParts: () => [
+          { type: "month", value: "05" },
+          { type: "literal", value: "/" },
+          { type: "day", value: "20" },
+          { type: "literal", value: "/" },
+          { type: "year", value: "2026" },
+          { type: "literal", value: ", " },
+          { type: "hour", value: "24" },
+          { type: "literal", value: ":" },
+          { type: "minute", value: "05" },
+        ],
+      }));
+
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "2026-05-20T07:05:00.000Z",
+      endDate: null,
+      announcementText: "Announcement at midnight",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
+    expect(screen.getByTestId(`${testId}-startDate`)).toHaveValue(
+      "2026-05-20T00:05",
+    );
+
+    dateTimeFormatSpy.mockRestore();
+  });
+
   test("submitting edit uses id from URL params, not the disabled form id", async () => {
     axiosMock.onGet("/api/commons/plus").reply(200, {
       commons: {
