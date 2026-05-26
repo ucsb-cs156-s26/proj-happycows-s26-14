@@ -201,8 +201,8 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock.onGet("/api/announcements/getbyid").reply(200, {
       id: 17,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:45",
-      endDate: "2026-05-21T13:45:45",
+      startDate: "2026-05-20T12:30-not-a-date",
+      endDate: "2026-05-21T13:45-not-a-date",
       announcementText: "Announcement with local dates",
     });
 
@@ -244,6 +244,51 @@ describe("AdminEditAnnouncementsPage tests", () => {
     expect(screen.getByTestId(`${testId}-announcementText`)).toHaveValue(
       "Announcement with invalid dates",
     );
+  });
+
+  test("submitting invalid timezone dates sends empty startDate and null endDate", async () => {
+    axiosMock.onGet("/api/commons/plus").reply(200, {
+      commons: {
+        id: 1,
+        name: "Sample Commons",
+      },
+    });
+
+    axiosMock.onGet("/api/announcements/getbyid").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "not-a-dateZ",
+      endDate: "also-not-a-date-07:00",
+      announcementText: "Announcement with invalid dates",
+    });
+
+    axiosMock.onPut("/api/announcements/put").reply(200, {
+      id: 17,
+      commonsId: 1,
+      startDate: "",
+      endDate: null,
+      announcementText: "Updated invalid dates",
+    });
+
+    renderComponent();
+
+    expect(await screen.findByTestId(`${testId}-id`)).toHaveValue("17");
+
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Updated invalid dates" },
+    });
+
+    fireEvent.click(screen.getByTestId(`${testId}-submit`));
+
+    await waitFor(() => expect(axiosMock.history.put.length).toBe(1));
+
+    expect(axiosMock.history.put[0].params).toEqual({
+      id: 17,
+      commonsId: 1,
+      startDate: "",
+      endDate: null,
+      announcementText: "Updated invalid dates",
+    });
   });
 
   test("timezone dates with hour 24 are normalized to hour 00", async () => {
