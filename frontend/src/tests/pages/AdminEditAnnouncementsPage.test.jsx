@@ -90,8 +90,8 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock.onGet("/api/announcements/getbyid").reply(200, {
       id: 999,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:45.000Z",
-      endDate: "2026-05-21T13:45:45.000Z",
+      startDate: "2026-05-20T19:30:45.000Z",
+      endDate: "2026-05-21T20:45:45.000Z",
       announcementText: "Existing announcement",
     });
 
@@ -133,8 +133,8 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock.onGet("/api/announcements/getbyid").reply(200, {
       id: 17,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:45.000Z",
-      endDate: "2026-05-21T13:45:45.000Z",
+      startDate: "2026-05-20T19:30:45.000Z",
+      endDate: "2026-05-21T20:45:45.000Z",
       announcementText: "Existing announcement",
     });
 
@@ -201,7 +201,7 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock.onGet("/api/announcements/getbyid").reply(200, {
       id: 999,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:45.000Z",
+      startDate: "2026-05-20T19:30:45.000Z",
       endDate: null,
       announcementText: "Existing announcement",
     });
@@ -261,8 +261,8 @@ describe("AdminEditAnnouncementsPage tests", () => {
     axiosMock.onGet("/api/announcements/getbyid").reply(200, {
       id: 17,
       commonsId: 1,
-      startDate: "2026-05-20T12:30:45.000Z",
-      endDate: "2026-05-21T13:45:45.000Z",
+      startDate: "2026-05-20T19:30:45.000Z",
+      endDate: "2026-05-21T20:45:45.000Z",
       announcementText: "Existing announcement",
     });
 

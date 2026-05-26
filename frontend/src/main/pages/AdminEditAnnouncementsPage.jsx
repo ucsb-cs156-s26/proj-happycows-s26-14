@@ -37,7 +37,30 @@ export default function AdminEditAnnouncementsPage() {
 
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
-    return dateString.substring(0, 16);
+    const hasTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(dateString);
+    if (!hasTimezone) return dateString.substring(0, 16);
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Los_Angeles",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      hourCycle: "h23",
+    })
+      .formatToParts(date)
+      .reduce((acc, part) => {
+        acc[part.type] = part.value;
+        return acc;
+      }, {});
+
+    const hour = parts.hour === "24" ? "00" : parts.hour;
+    return `${parts.year}-${parts.month}-${parts.day}T${hour}:${parts.minute}`;
   };
 
   const initialContents = announcement
