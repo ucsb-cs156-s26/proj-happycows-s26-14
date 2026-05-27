@@ -22,12 +22,7 @@ vi.mock("react-router", async () => ({
 describe("AnnouncementTable tests", () => {
   const queryClient = new QueryClient();
 
-  const expectedHeaders = [
-    "id",
-    "Start Date",
-    "End Date",
-    "Announcement",
-  ];
+  const expectedHeaders = ["id", "Start Date", "End Date", "Announcement"];
   const expectedFields = ["id", "startDate", "endDate", "announcementText"];
   const testId = "AnnouncementTable";
 
@@ -102,9 +97,9 @@ describe("AnnouncementTable tests", () => {
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-startDate`),
     ).toHaveTextContent(formatAnnouncementDateTime("2022-12-12T00:00:00"));
-    expect(screen.getByTestId(`${testId}-cell-row-1-col-endDate`)).toHaveTextContent(
-      "",
-    );
+    expect(
+      screen.getByTestId(`${testId}-cell-row-1-col-endDate`),
+    ).toHaveTextContent("");
 
     const editButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Edit-button`,
