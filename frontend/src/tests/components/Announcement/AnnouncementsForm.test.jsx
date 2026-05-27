@@ -208,4 +208,59 @@ describe("AnnouncementForm tests", () => {
     ).toBeInTheDocument();
     expect(submitAction).not.toHaveBeenCalled();
   });
+
+  test("endDate is allowed when startDate is blank", async () => {
+    const submitAction = vi.fn();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AnnouncementForm submitAction={submitAction} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
+      target: { value: "2026-05-27T09:59" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Hello announcements" },
+    });
+    fireEvent.click(screen.getByText(/Create/));
+
+    await waitFor(() => expect(submitAction).toHaveBeenCalled());
+    expect(
+      screen.queryByText(/End Date must be after the Start Date./),
+    ).not.toBeInTheDocument();
+    expect(submitAction.mock.calls[0][0]).toMatchObject({
+      startDate: "",
+      endDate: "2026-05-27T09:59",
+    });
+  });
+
+  test("endDate must be strictly after startDate", async () => {
+    const submitAction = vi.fn();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AnnouncementForm submitAction={submitAction} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    fireEvent.change(screen.getByTestId(`${testId}-startDate`), {
+      target: { value: "2026-05-27T10:00" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
+      target: { value: "2026-05-27T10:00" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Hello announcements" },
+    });
+    fireEvent.click(screen.getByText(/Create/));
+
+    expect(
+      await screen.findByText(/End Date must be after the Start Date./),
+    ).toBeInTheDocument();
+    expect(submitAction).not.toHaveBeenCalled();
+  });
 });

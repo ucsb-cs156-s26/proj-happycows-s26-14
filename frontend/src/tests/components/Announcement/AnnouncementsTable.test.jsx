@@ -90,6 +90,12 @@ describe("AnnouncementTable tests", () => {
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
     ).not.toHaveTextContent(":00:00");
+    expect(
+      screen.getByTestId(`${testId}-cell-row-0-col-endDate`),
+    ).toHaveTextContent(formatAnnouncementDateTime("2025-12-12T00:00:00"));
+    expect(
+      screen.getByTestId(`${testId}-cell-row-0-col-endDate`),
+    ).not.toHaveTextContent(":00:00");
 
     expect(screen.getByTestId(`${testId}-cell-row-1-col-id`)).toHaveTextContent(
       "2",
