@@ -181,4 +181,31 @@ describe("AnnouncementForm tests", () => {
       endDate: "",
     });
   });
+
+  test("endDate must be after startDate", async () => {
+    const submitAction = vi.fn();
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <AnnouncementForm submitAction={submitAction} />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    fireEvent.change(screen.getByTestId(`${testId}-startDate`), {
+      target: { value: "2026-05-27T10:00" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-endDate`), {
+      target: { value: "2026-05-27T09:59" },
+    });
+    fireEvent.change(screen.getByTestId(`${testId}-announcementText`), {
+      target: { value: "Hello announcements" },
+    });
+    fireEvent.click(screen.getByText(/Create/));
+
+    expect(
+      await screen.findByText(/End Date must be after the Start Date./),
+    ).toBeInTheDocument();
+    expect(submitAction).not.toHaveBeenCalled();
+  });
 });

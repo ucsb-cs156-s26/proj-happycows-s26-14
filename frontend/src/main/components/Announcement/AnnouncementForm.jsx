@@ -31,6 +31,7 @@ function AnnouncementForm({
     register,
     formState: { errors },
     handleSubmit,
+    getValues,
   } = useForm({ defaultValues: modifiedContents });
   // Stryker restore all
 
@@ -44,6 +45,17 @@ function AnnouncementForm({
   // Stryker disable next-line Regex
   const isodate_regex =
     /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+)|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d)|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d)/i;
+
+  const endDateAfterStartDate = (endDate) => {
+    const startDate = getValues("startDate");
+    if (!startDate || !endDate) {
+      return true;
+    }
+    return (
+      new Date(endDate) > new Date(startDate) ||
+      "End Date must be after the Start Date."
+    );
+  };
 
   // Stryker disable next-line all
   //const yyyyq_regex = /((19)|(20))\d{2}[1-4]/i; // Accepts from 1900-2099 followed by 1-4.  Close enough.
@@ -93,8 +105,12 @@ function AnnouncementForm({
           // Stryker disable next-line all
           {...register("endDate", {
             pattern: isodate_regex,
+            validate: endDateAfterStartDate,
           })}
         />
+        <Form.Control.Feedback type="invalid">
+          {errors.endDate?.message}
+        </Form.Control.Feedback>
       </Form.Group>
 
       <Form.Group className="mb-3">
