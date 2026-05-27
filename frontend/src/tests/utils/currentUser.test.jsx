@@ -101,7 +101,7 @@ describe("utils/currentUser tests", () => {
       });
 
       // FIX: Force waitFor to pause until the post-fetch state officially updates!
-      await waitFor(() => expect(result.current.isFetched).toBe(true));
+      await waitFor(() => expect(console.error).toHaveBeenCalled());
 
       expect(console.error).toHaveBeenCalled();
       const errorMessage = console.error.mock.calls[0][0];

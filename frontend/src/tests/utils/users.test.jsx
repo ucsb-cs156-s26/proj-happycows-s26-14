@@ -71,8 +71,9 @@ describe("utils/users tests", () => {
       axiosMock.onGet("/api/admin/users").reply(200, usersFixtures.threeUsers);
 
       const { result } = renderHook(() => useUsers(), { wrapper });
-      await waitFor(() => result.current.isFetched);
-      expect(result.current.data).toEqual(usersFixtures.threeUsers);
+      await waitFor(() =>
+        expect(result.current.data).toEqual(usersFixtures.threeUsers),
+      );
     });
   });
 

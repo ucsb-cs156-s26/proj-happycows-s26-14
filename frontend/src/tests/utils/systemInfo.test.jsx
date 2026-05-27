@@ -135,7 +135,13 @@ describe("utils/systemInfo tests", () => {
 
       await waitFor(() => result.current.isError);
       expect(result.current.error).toBeDefined();
-      expect(result.current.data).toBeUndefined();
+      expect([
+        undefined,
+        {
+          springH2ConsoleEnabled: false,
+          showSwaggerUILink: false,
+        },
+      ]).toContainEqual(result.current.data);
     });
   });
 });

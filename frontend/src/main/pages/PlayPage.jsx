@@ -72,11 +72,17 @@ export default function PlayPage() {
     {},
   );
 
-  const commonsPlusExists = !(typeof commonsPlus == "undefined");
+  const commonsPlusExists = !!commonsPlus && !!commonsPlus.commons;
   let commonsforuser;
   let matched;
 
-  if (commonsPlusExists) {
+  if (
+    commonsPlusExists &&
+    currentUser &&
+    currentUser.root &&
+    currentUser.root.user &&
+    currentUser.root.user.commons
+  ) {
     commonsforuser = currentUser.root.user.commons;
     matched = commonsforuser.some((com) => com.id === commonsPlus.commons.id);
   }
@@ -189,7 +195,9 @@ export default function PlayPage() {
     >
       <BasicLayout>
         <Container>
-          {!commonsPlus && <h1>This commons does not exist!</h1>}
+          {(!commonsPlus || !commonsPlus.commons) && (
+            <h1>This commons does not exist!</h1>
+          )}
           {notallowed && <h1>You have yet to join this commons!</h1>}
           {hidden && (
             <h1>This commons has been hidden by the site administrator.</h1>
