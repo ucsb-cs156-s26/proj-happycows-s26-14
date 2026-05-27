@@ -3,11 +3,12 @@
 import java.util.Arrays;
 
 <span class="fc" id="L5">public enum CommonsFeatures {</span>
-<span class="fc" id="L6">    FARMERS_CAN_SEE_LEADERBOARD;</span>
+<span class="fc" id="L6">    FARMERS_CAN_SEE_LEADERBOARD,</span>
+<span class="fc" id="L7">    SHOW_CHAT;</span>
 
     public static boolean isValidFeature(String featureName) {
-<span class="fc" id="L9">        return Arrays.stream(values())</span>
-<span class="fc" id="L10">                .anyMatch(feature -&gt; feature.name().equals(featureName));</span>
+<span class="fc" id="L10">        return Arrays.stream(values())</span>
+<span class="fc" id="L11">                .anyMatch(feature -&gt; feature.name().equals(featureName));</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
