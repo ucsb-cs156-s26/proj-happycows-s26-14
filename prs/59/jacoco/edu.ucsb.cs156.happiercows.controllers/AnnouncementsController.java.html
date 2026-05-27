@@ -24,7 +24,7 @@ import edu.ucsb.cs156.happiercows.entities.UserCommons;
 import edu.ucsb.cs156.happiercows.repositories.UserCommonsRepository;
 
 import org.springframework.security.core.Authentication;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 
 import java.util.Optional;
@@ -53,12 +53,12 @@ import java.util.Optional;
         @Parameter(description = &quot;The datetime at which the announcement will be shown (defaults to current time)&quot;)
         @RequestParam(required = false)
         @DateTimeFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm&quot;)
-        Date startDate,
+        LocalDateTime startDate,
 
         @Parameter(description = &quot;The datetime at which the announcement will stop being shown (optional)&quot;)
         @RequestParam(required = false)
         @DateTimeFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm&quot;)
-        Date endDate,
+        LocalDateTime endDate,
         @Parameter(description = &quot;The announcement to be sent out&quot;) @RequestParam String announcementText) {
 
 <span class="fc" id="L64">        User user = getCurrentUser().getUser();</span>
@@ -77,13 +77,13 @@ import java.util.Optional;
 
 <span class="fc bfc" id="L78" title="All 2 branches covered.">        if (startDate == null) { </span>
 <span class="fc" id="L79">            log.info(&quot;Start date not specified. Defaulting to current date.&quot;);</span>
-<span class="fc" id="L80">            startDate = new Date(); </span>
+<span class="fc" id="L80">            startDate = LocalDateTime.now(); </span>
         }
 
 <span class="fc bfc" id="L83" title="All 2 branches covered.">        if (announcementText == &quot;&quot;) {</span>
 <span class="fc" id="L84">            return ResponseEntity.badRequest().body(&quot;Announcement cannot be empty.&quot;);</span>
         }
-<span class="fc bfc" id="L86" title="All 4 branches covered.">        if (endDate != null &amp;&amp; startDate.after(endDate)) {</span>
+<span class="fc bfc" id="L86" title="All 4 branches covered.">        if (endDate != null &amp;&amp; startDate.isAfter(endDate)) {</span>
 <span class="fc" id="L87">            return ResponseEntity.badRequest().body(&quot;Start date must be before end date.&quot;);</span>
         }
 
@@ -146,12 +146,12 @@ import java.util.Optional;
         @Parameter(description = &quot;The datetime at which the announcement will be shown (defaults to current time)&quot;)
         @RequestParam(required = false)
         @DateTimeFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm&quot;)
-        Date startDate,
+        LocalDateTime startDate,
         
         @Parameter(description = &quot;The datetime at which the announcement will stop being shown (optional)&quot;)
         @RequestParam(required = false)
         @DateTimeFormat(pattern = &quot;yyyy-MM-dd'T'HH:mm&quot;)
-        Date endDate,
+        LocalDateTime endDate,
         @Parameter(description = &quot;The announcement to be sent out&quot;) @RequestParam String announcementText) {
 
 <span class="fc" id="L157">        User user = getCurrentUser().getUser();</span>
@@ -174,10 +174,10 @@ import java.util.Optional;
 
 <span class="fc bfc" id="L175" title="All 2 branches covered.">        if (startDate == null) {</span>
 <span class="fc" id="L176">            log.info(&quot;Start date not specified. Defaulting to current date.&quot;);</span>
-<span class="fc" id="L177">            startDate = new Date();</span>
+<span class="fc" id="L177">            startDate = LocalDateTime.now();</span>
         }
 
-<span class="fc bfc" id="L180" title="All 4 branches covered.">        if (endDate != null &amp;&amp; startDate.after(endDate)) {</span>
+<span class="fc bfc" id="L180" title="All 4 branches covered.">        if (endDate != null &amp;&amp; startDate.isAfter(endDate)) {</span>
 <span class="fc" id="L181">            return ResponseEntity.badRequest().body(&quot;Start date must be before end date.&quot;);</span>
         }
 
