@@ -80,6 +80,26 @@ import org.springframework.web.bind.annotation.*;
 <span class="fc" id="L80">        return currCourse;  </span>
 
     }
+
+
+    /**
+     * Delete a course
+     *
+     * @param id the id of the course to delete
+     * @return a message indicating the course was deleted
+     */
+    @Operation(summary = &quot;Delete a Course&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @DeleteMapping(&quot;&quot;)
+    public Object deleteCourse(@Parameter(name = &quot;id&quot;) @RequestParam Long id) {
+<span class="fc" id="L95">        Course currCourse =</span>
+            courseRepository
+<span class="fc" id="L97">                .findById(id)</span>
+<span class="fc" id="L98">                .orElseThrow(() -&gt; new EntityNotFoundException(Course.class, id));</span>
+
+<span class="fc" id="L100">        courseRepository.delete(currCourse);</span>
+<span class="fc" id="L101">        return genericMessage(&quot;Course with id %s deleted&quot;.formatted(id));</span>
+  }
     
 
 }
