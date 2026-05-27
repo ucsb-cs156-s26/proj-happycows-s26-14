@@ -69,7 +69,7 @@ const ManageCows = ({ userCommons, commons, setMessage, openModal }) => {
                 </Button>
               </Col>
             </Row>
-            <p>
+            <div>
               <b>Note:</b>
               <ul>
                 <li>Buying cows buys at the current cow price.</li>
@@ -78,7 +78,7 @@ const ManageCows = ({ userCommons, commons, setMessage, openModal }) => {
                   average cow health (as a percentage.)
                 </li>
               </ul>
-            </p>
+            </div>
           </>
         )}
       </Card.Body>

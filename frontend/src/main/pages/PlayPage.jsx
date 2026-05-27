@@ -56,6 +56,22 @@ export default function PlayPage() {
   );
   // Stryker restore all
 
+  const {
+    data: commonsFeatures,
+    error: _commonsFeaturesError,
+    status: _commonsFeaturesStatus,
+  } = useBackend(
+    [`/api/commonsfeatures?commonsId=${commonsId}`],
+    {
+      method: "GET",
+      url: "/api/commonsfeatures",
+      params: {
+        commonsId: commonsId,
+      },
+    },
+    {},
+  );
+
   const commonsPlusExists = !(typeof commonsPlus == "undefined");
   let commonsforuser;
   let matched;
@@ -214,7 +230,7 @@ export default function PlayPage() {
         </Container>
       </BasicLayout>
       {(hasRole(currentUser, "ROLE_ADMIN") ||
-        (allowed && !!commonsPlus && commonsPlus.commons.showChat)) && (
+        (allowed && !!commonsPlus && commonsFeatures?.SHOW_CHAT)) && (
         <div style={chatContainerStyle} data-testid="playpage-chat-div">
           {!!isChatOpen && <ChatPanel commonsId={commonsId} />}
           <Button

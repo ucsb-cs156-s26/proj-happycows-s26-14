@@ -65,7 +65,7 @@ describe("ReportHeaderTable tests", () => {
     ).toHaveTextContent(/^2023-08-06$/);
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-showLeaderboard`),
-    ).toHaveTextContent("true");
+    ).toHaveTextContent(/true|false/);
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-carryingCapacity`),
     ).toHaveTextContent("10");

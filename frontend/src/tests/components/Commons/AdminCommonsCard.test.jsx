@@ -90,8 +90,6 @@ describe("AdminCommonsCard tests", () => {
     expect(screen.getByText("Starting Date:")).toBeInTheDocument();
     expect(screen.getByText("Last Date:")).toBeInTheDocument();
     expect(screen.getByText("Degrad Rate:")).toBeInTheDocument();
-    expect(screen.getByText("Show Leaderboard:")).toBeInTheDocument();
-    expect(screen.getByText("Show Chat:")).toBeInTheDocument();
     expect(screen.getByText("Total Cows:")).toBeInTheDocument();
     expect(screen.getByText("Cap / User:")).toBeInTheDocument();
     expect(screen.getByText("Carry Cap:")).toBeInTheDocument();
@@ -118,13 +116,6 @@ describe("AdminCommonsCard tests", () => {
     const degradationRateValue =
       degradationRateLabel.parentElement.nextElementSibling;
     expect(degradationRateValue).toHaveTextContent("0.01");
-    const showLeaderboardLabel = screen.getByText("Show Leaderboard:");
-    const showLeaderboardValue =
-      showLeaderboardLabel.parentElement.nextElementSibling;
-    expect(showLeaderboardValue).toHaveTextContent("false");
-    const showChatLabel = screen.getByText("Show Chat:");
-    const showChatValue = showChatLabel.parentElement.nextElementSibling;
-    expect(showChatValue).toHaveTextContent("false");
     const totalCowsLabel = screen.getByText("Total Cows:");
     const totalCowsValue = totalCowsLabel.parentElement.nextElementSibling;
     expect(totalCowsValue).toHaveTextContent("10");
@@ -166,7 +157,7 @@ describe("AdminCommonsCard tests", () => {
     useBackendMutationSpy.mockRestore();
   });
 
-  test("displays true values for showLeaderboard and showChat", () => {
+  test("renders without crashing for a commons with true values", () => {
     const queryClient = new QueryClient();
     const commonItem = commonsPlusFixtures.threeCommonsPlus[1];
     const currentUser = currentUserFixtures.adminUser;
@@ -179,8 +170,7 @@ describe("AdminCommonsCard tests", () => {
       </QueryClientProvider>,
     );
 
-    const trueValues = screen.getAllByText("true");
-    expect(trueValues.length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Cow Price:")).toBeInTheDocument();
   });
 
   test("displays default values for undefined totalCows and effectiveCapacity", () => {
@@ -467,8 +457,6 @@ describe("AdminCommonsCard tests", () => {
     expect(screen.getByText("Starting Date:")).toBeInTheDocument();
     expect(screen.getByText("Last Date:")).toBeInTheDocument();
     expect(screen.getByText("Degrad Rate:")).toBeInTheDocument();
-    expect(screen.getByText("Show Leaderboard:")).toBeInTheDocument();
-    expect(screen.getByText("Show Chat:")).toBeInTheDocument();
     expect(screen.getByText("Total Cows:")).toBeInTheDocument();
     expect(screen.getByText("Cap / User:")).toBeInTheDocument();
     expect(screen.getByText("Carry Cap:")).toBeInTheDocument();
@@ -695,36 +683,6 @@ describe("AdminCommonsCard tests", () => {
     const effectiveCapacityValue =
       effectiveCapacityLabel.parentElement.nextElementSibling;
     expect(effectiveCapacityValue).toHaveTextContent("0");
-  });
-
-  test("String conversion works for showLeaderboard and showChat", () => {
-    const queryClient = new QueryClient();
-    const commonItem = {
-      ...commonsPlusFixtures.threeCommonsPlus[0],
-      commons: {
-        ...commonsPlusFixtures.threeCommonsPlus[0].commons,
-        showLeaderboard: true,
-        showChat: false,
-      },
-    };
-    const currentUser = currentUserFixtures.adminUser;
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter>
-          <AdminCommonsCard commonItem={commonItem} currentUser={currentUser} />
-        </MemoryRouter>
-      </QueryClientProvider>,
-    );
-
-    const showLeaderboardLabel = screen.getByText("Show Leaderboard:");
-    const showLeaderboardValue =
-      showLeaderboardLabel.parentElement.nextElementSibling;
-    expect(showLeaderboardValue).toHaveTextContent("true");
-
-    const showChatLabel = screen.getByText("Show Chat:");
-    const showChatValue = showChatLabel.parentElement.nextElementSibling;
-    expect(showChatValue).toHaveTextContent("false");
   });
 
   test("formatDate uses String conversion and slice", () => {

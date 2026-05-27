@@ -20,6 +20,8 @@ import edu.ucsb.cs156.happiercows.repositories.ChatMessageRepository;
 
 import edu.ucsb.cs156.happiercows.entities.User;
 import edu.ucsb.cs156.happiercows.entities.UserCommons;
+import edu.ucsb.cs156.happiercows.enums.CommonsFeatures;
+import edu.ucsb.cs156.happiercows.repositories.CommonsFeatureRepository;
 import edu.ucsb.cs156.happiercows.repositories.UserCommonsRepository;
 
 import org.springframework.security.core.Authentication;
@@ -38,6 +40,9 @@ public class ChatMessageController extends ApiController{
 
     @Autowired
     private UserCommonsRepository userCommonsRepository;
+
+    @Autowired
+    private CommonsFeatureRepository commonsFeatureRepository;
 
     @Autowired
     ObjectMapper mapper;
@@ -61,8 +66,7 @@ public class ChatMessageController extends ApiController{
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
 
-            UserCommons userCommons = userCommonsLookup.get();
-            if(!userCommons.getCommons().isShowChat()){
+            if(!isChatEnabled(commonsId)){
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
@@ -118,7 +122,7 @@ public class ChatMessageController extends ApiController{
             }
 
             UserCommons userCommons = userCommonsLookup.get();
-            if(!userCommons.getCommons().isShowChat()){
+            if(!isChatEnabled(commonsId)){
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
             }
         }
@@ -166,7 +170,7 @@ public class ChatMessageController extends ApiController{
         // Check if showChat is true
         Optional<UserCommons> userCommonsLookup = userCommonsRepository.findByCommonsIdAndUserId(chatMessage.getCommonsId(), userId);
         UserCommons userCommons = userCommonsLookup.get();
-        if (!userCommons.getCommons().isShowChat()){
+        if (!isChatEnabled(chatMessage.getCommonsId())){
             // Check if the user is an admin
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (!auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))){
@@ -181,6 +185,11 @@ public class ChatMessageController extends ApiController{
         return ResponseEntity.ok(chatMessage);
     }
 
-    
+    private boolean isChatEnabled(Long commonsId) {
+        return commonsFeatureRepository
+                .findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())
+                .map(commonsFeature -> commonsFeature.isEnabled())
+                .orElse(false);
+    }
 
 }

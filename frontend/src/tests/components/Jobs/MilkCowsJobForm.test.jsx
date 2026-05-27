@@ -76,7 +76,9 @@ describe("MilkTheCowsForm tests", () => {
     });
 
     const commons = screen.getByTestId(testIdForFirstItem);
-    expect(commons).toHaveAttribute("checked", "");
+    await waitFor(() => {
+      expect(commons).toBeChecked();
+    });
   });
 
   test("the correct parameters are passed to useBackend", async () => {
@@ -98,5 +100,29 @@ describe("MilkTheCowsForm tests", () => {
         [],
       );
     });
+  });
+
+  test("falls back to All Commons when commonsAll is undefined", async () => {
+    const useBackendSpy = vi
+      .spyOn(useBackendModule, "useBackend")
+      .mockReturnValue({ data: undefined });
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Router>
+          <MilkTheCowsForm />
+        </Router>
+      </QueryClientProvider>,
+    );
+
+    const defaultId = 0;
+    const testIdForFirstItem = `MilkTheCowsForm-commons-${defaultId}`;
+    const commons = await screen.findByTestId(testIdForFirstItem);
+
+    await waitFor(() => {
+      expect(commons).toBeChecked();
+    });
+
+    useBackendSpy.mockRestore();
   });
 });

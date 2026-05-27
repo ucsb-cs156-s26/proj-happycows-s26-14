@@ -159,18 +159,6 @@ export default function AdminCommonsCard({ commonItem, currentUser }) {
             </Col>
             <Col xs={12} sm={6} md={3} className="mb-3">
               <div>
-                <strong>Show Leaderboard:</strong>
-              </div>
-              <div>{String(commons.showLeaderboard)}</div>
-            </Col>
-            <Col xs={12} sm={6} md={3} className="mb-3">
-              <div>
-                <strong>Show Chat:</strong>
-              </div>
-              <div>{String(commons.showChat)}</div>
-            </Col>
-            <Col xs={12} sm={6} md={3} className="mb-3">
-              <div>
                 <strong>Total Cows:</strong>
               </div>
               <div>{commonItem.totalCows || 0}</div>

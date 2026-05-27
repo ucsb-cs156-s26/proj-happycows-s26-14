@@ -1,5 +1,5 @@
 import { Button, Form } from "react-bootstrap";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useBackend } from "main/utils/useBackend";
 import CommonsSelect from "main/components/Commons/CommonsSelect";
@@ -14,11 +14,17 @@ function UpdateCowHealthForm({ submitAction, testid = "UpdateCowHealthForm" }) {
   );
 
   const allCommonsProp = { id: 0, name: "All Commons" };
-
-  const commons = [allCommonsProp, ...commonsAll];
+  const commons = [allCommonsProp, ...(commonsAll || [])];
 
   const [selectedCommons, setSelectedCommons] = useState(null);
   const [selectedCommonsName, setSelectedCommonsName] = useState(null);
+
+  useEffect(() => {
+    if (commons.length > 0 && selectedCommons === null) {
+      setSelectedCommons(commons[0].id);
+      setSelectedCommonsName(commons[0].name);
+    }
+  }, [commons, selectedCommons]);
 
   const { handleSubmit } = useForm();
 
@@ -31,11 +37,6 @@ function UpdateCowHealthForm({ submitAction, testid = "UpdateCowHealthForm" }) {
     const params = { selectedCommons, selectedCommonsName };
     submitAction(params);
   };
-
-  if (selectedCommons === null) {
-    setSelectedCommons(commons[0].id);
-    setSelectedCommonsName(commons[0].name);
-  }
 
   return (
     <Form onSubmit={handleSubmit(onSubmit)}>

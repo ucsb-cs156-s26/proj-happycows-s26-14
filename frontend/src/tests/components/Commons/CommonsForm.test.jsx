@@ -51,7 +51,6 @@ describe("CommonsForm tests", () => {
       /Degradation Rate/,
       /Capacity Per User/,
       /Carrying Capacity/,
-      /Show Leaderboard\?/,
       /When below capacity/,
       /When above capacity/,
     ].forEach((pattern) => {
@@ -167,12 +166,20 @@ describe("CommonsForm tests", () => {
 
     // check that the other testids are present
 
-    ["CommonsForm-showLeaderboard", "CommonsForm-showChat"].forEach(
-      (testid) => {
-        const element = screen.getByTestId(testid);
-        expect(element).toBeInTheDocument();
-      },
-    );
+    [
+      "CommonsForm-name",
+      "CommonsForm-degradationRate",
+      "CommonsForm-capacityPerUser",
+      "CommonsForm-carryingCapacity",
+      "CommonsForm-milkPrice",
+      "CommonsForm-cowPrice",
+      "CommonsForm-startingBalance",
+      "CommonsForm-startingDate",
+      "CommonsForm-lastDate",
+    ].forEach((item) => {
+      const element = screen.getByTestId(item);
+      expect(element).toBeInTheDocument();
+    });
 
     expect(submitAction).not.toBeCalled();
   });

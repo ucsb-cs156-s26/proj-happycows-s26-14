@@ -1,5 +1,5 @@
 import { Button, Form } from "react-bootstrap";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useBackend } from "main/utils/useBackend";
 import CommonsSelect from "main/components/Commons/CommonsSelect";
@@ -8,8 +8,21 @@ function SetCowHealthForm({
   submitAction = () => {},
   testid = "SetCowHealthForm",
 }) {
-  const localHealthValue = localStorage.getItem(`${testid}-health`);
-  const [healthValue, setHealthValue] = useState(localHealthValue || 100);
+  const getSavedHealth = () => {
+    if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.getItem === "function") {
+      return window.localStorage.getItem(`${testid}-health`);
+    }
+    return null;
+  };
+
+  const [healthValue, setHealthValue] = useState(100);
+
+  useEffect(() => {
+    const savedHealth = getSavedHealth();
+    if (savedHealth !== null) {
+      setHealthValue(savedHealth);
+    }
+  }, [testid]);
 
   const { data: commons } = useBackend(
     ["/api/commons/all"],
@@ -20,6 +33,13 @@ function SetCowHealthForm({
   const [selectedCommons, setSelectedCommons] = useState(null);
   const [selectedCommonsName, setSelectedCommonsName] = useState(null);
 
+  useEffect(() => {
+    if (commons && commons.length > 0 && selectedCommons === null) {
+      setSelectedCommons(commons[0].id);
+      setSelectedCommonsName(commons[0].name);
+    }
+  }, [commons, selectedCommons]);
+
   const {
     handleSubmit,
     register,
@@ -29,7 +49,9 @@ function SetCowHealthForm({
   const handleHealthValueChange = (e) => {
     const newValue = e.target.value;
     setHealthValue(newValue);
-    localStorage.setItem(`${testid}-health`, newValue);
+    if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.setItem === "function") {
+      window.localStorage.setItem(`${testid}-health`, newValue);
+    }
   };
 
   const handleCommonsSelection = (id, name) => {
@@ -44,11 +66,6 @@ function SetCowHealthForm({
 
   if (!commons || commons.length === 0) {
     return <div>There are no commons on which to run this job.</div>;
-  }
-
-  if (selectedCommons === null) {
-    setSelectedCommons(commons[0].id);
-    setSelectedCommonsName(commons[0].name);
   }
 
   return (

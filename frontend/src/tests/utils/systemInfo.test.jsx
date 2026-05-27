@@ -27,7 +27,6 @@ describe("utils/systemInfo tests", () => {
       );
 
       var axiosMock = new AxiosMockAdapter(axios);
-      axiosMock.onGet("/api/systemInfo").timeoutOnce();
       axiosMock
         .onGet("/api/systemInfo")
         .reply(200, systemInfoFixtures.showingNeither);
@@ -35,7 +34,11 @@ describe("utils/systemInfo tests", () => {
       const { result } = renderHook(() => useSystemInfo(), {
         wrapper,
       });
-      await waitFor(() => result.current.isSuccess);
+
+      await waitFor(() =>
+        result.current.data.springH2ConsoleEnabled ===
+          systemInfoFixtures.showingNeither.springH2ConsoleEnabled,
+      );
 
       expect(result.current.data.springH2ConsoleEnabled).toBe(false);
       expect(result.current.data.showSwaggerUILink).toBe(false);
@@ -61,7 +64,7 @@ describe("utils/systemInfo tests", () => {
         wrapper,
       });
 
-      await waitFor(() => result.current.isFetched);
+      await waitFor(() => result.current.isSuccess);
 
       expect(result.current.data.springH2ConsoleEnabled).toBe(
         systemInfoFixtures.showingAll.springH2ConsoleEnabled,
@@ -106,6 +109,32 @@ describe("utils/systemInfo tests", () => {
 
       await waitFor(() => expect(result.current.data).toEqual({}));
       queryClient.clear();
+    });
+
+    test("useSystemInfo throws on non-404 API failure", async () => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+          },
+        },
+      });
+      const wrapper = ({ children }) => (
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      );
+
+      const axiosMock = new AxiosMockAdapter(axios);
+      axiosMock.onGet("/api/systemInfo").timeout();
+
+      const { result } = renderHook(() => useSystemInfo(), {
+        wrapper,
+      });
+
+      await waitFor(() => result.current.isError);
+      expect(result.current.error).toBeDefined();
+      expect(result.current.data).toBeUndefined();
     });
   });
 });

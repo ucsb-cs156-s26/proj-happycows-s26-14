@@ -38,8 +38,11 @@ import edu.ucsb.cs156.happiercows.repositories.ChatMessageRepository;
 import edu.ucsb.cs156.happiercows.entities.ChatMessage;
 
 import edu.ucsb.cs156.happiercows.repositories.UserCommonsRepository;
+import edu.ucsb.cs156.happiercows.repositories.CommonsFeatureRepository;
 import edu.ucsb.cs156.happiercows.entities.UserCommons;
 import edu.ucsb.cs156.happiercows.entities.Commons;
+import edu.ucsb.cs156.happiercows.entities.CommonsFeature;
+import edu.ucsb.cs156.happiercows.enums.CommonsFeatures;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -52,6 +55,9 @@ public class ChatMessageControllerTests extends ControllerTestCase {
 
     @MockBean
     UserCommonsRepository userCommonsRepository;
+
+    @MockBean
+    CommonsFeatureRepository commonsFeatureRepository;
 
     @MockBean
     UserRepository userRepository;
@@ -83,6 +89,12 @@ public class ChatMessageControllerTests extends ControllerTestCase {
                 .build();
         when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
 
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(true)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
 
         // act
         MvcResult response = mockMvc.perform(get("/api/chat/get?commonsId={commonsId}&page={page}&size={size}", commonsId, page, size))
@@ -278,6 +290,13 @@ public class ChatMessageControllerTests extends ControllerTestCase {
                 .build();
         when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
 
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(true)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
+
         //act 
         MvcResult response = mockMvc.perform(post("/api/chat/post?commonsId={commonsId}&content={content}", commonsId, content).with(csrf()))
             .andExpect(status().isOk()).andReturn();
@@ -374,6 +393,13 @@ public class ChatMessageControllerTests extends ControllerTestCase {
             .build();
 when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
 
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(true)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
+
         //act 
         MvcResult response = mockMvc.perform(put("/api/chat/hide?chatMessageId={messageId}", messageId).with(csrf()))
             .andExpect(status().isOk()).andReturn();
@@ -405,6 +431,13 @@ when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenRetu
                 .commons(Commons.builder().build())
                 .build();
         when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
+
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(true)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
 
         //act 
         MvcResult response = mockMvc.perform(put("/api/chat/hide?chatMessageId={messageId}", messageId).with(csrf()))
@@ -493,6 +526,13 @@ when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenRetu
                 .build();
         when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
 
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(false)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
+
         //act 
         mockMvc.perform(put("/api/chat/hide?chatMessageId={messageId}", messageId).with(csrf()))
             .andExpect(status().isForbidden()).andReturn();
@@ -525,6 +565,13 @@ when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenRetu
                 .commons(Commons.builder().showChat(false).build())
                 .build();
         when(userCommonsRepository.findByCommonsIdAndUserId(commonsId, userId)).thenReturn(Optional.of(userCommons));
+
+        CommonsFeature commonsFeature = CommonsFeature.builder()
+                .commonsId(commonsId)
+                .feature(CommonsFeatures.SHOW_CHAT.name())
+                .enabled(false)
+                .build();
+        when(commonsFeatureRepository.findByCommonsIdAndFeature(commonsId, CommonsFeatures.SHOW_CHAT.name())).thenReturn(Optional.of(commonsFeature));
 
         //act 
         mockMvc.perform(put("/api/chat/hide?chatMessageId={messageId}", messageId).with(csrf()))

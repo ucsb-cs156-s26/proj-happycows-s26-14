@@ -38,7 +38,7 @@ export default function ReportHeaderTable({ report }) {
     {
       Header: "Leaderboard",
       id: "showLeaderboard",
-      accessor: (row, _rowIndex) => String(row.showLeaderboard), // hack needed for boolean values to show up
+      accessor: (row, _rowIndex) => String(row.FARMERS_CAN_SEE_LEADERBOARD ?? row.showLeaderboard), // support new feature flag or legacy field
     },
     {
       Header: "Capacity",

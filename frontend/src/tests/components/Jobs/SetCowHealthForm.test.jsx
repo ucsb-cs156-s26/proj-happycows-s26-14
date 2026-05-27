@@ -257,10 +257,16 @@ describe("SetCowHealthForm tests", () => {
   });
 
   test("healthValue can be loaded from localstorage", async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
-    getItemSpy.mockImplementation((key) =>
-      key === "SetCowHealthForm-health" ? 42 : null,
-    );
+    const storageMock = {
+      getItem: vi.fn((key) =>
+        key === "SetCowHealthForm-health" ? 42 : null,
+      ),
+      setItem: vi.fn(),
+    };
+    Object.defineProperty(window, "localStorage", {
+      value: storageMock,
+      configurable: true,
+    });
     axiosMock
       .onGet("/api/commons/all")
       .reply(200, commonsFixtures.threeCommons);
@@ -273,23 +279,24 @@ describe("SetCowHealthForm tests", () => {
       </QueryClientProvider>,
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("SetCowHealthForm-healthValue"),
-      ).toBeInTheDocument();
-    });
+    const healthInput = await screen.findByTestId("SetCowHealthForm-healthValue");
 
-    const healthInput = screen.getByTestId("SetCowHealthForm-healthValue");
-    expect(healthInput).toHaveValue(42);
+    await waitFor(() => {
+      expect(healthInput).toHaveValue(42);
+    });
   });
 
   test("healthValue is saved in localstorage", async () => {
-    const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
-    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
-
-    getItemSpy.mockImplementation((key) =>
-      key === "SetCowHealthForm-health" ? 42 : null,
-    );
+    const storageMock = {
+      getItem: vi.fn((key) =>
+        key === "SetCowHealthForm-health" ? 42 : null,
+      ),
+      setItem: vi.fn(),
+    };
+    Object.defineProperty(window, "localStorage", {
+      value: storageMock,
+      configurable: true,
+    });
 
     axiosMock
       .onGet("/api/commons/all")
@@ -303,14 +310,11 @@ describe("SetCowHealthForm tests", () => {
       </QueryClientProvider>,
     );
 
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("SetCowHealthForm-healthValue"),
-      ).toBeInTheDocument();
-    });
+    const healthInput = await screen.findByTestId("SetCowHealthForm-healthValue");
 
-    const healthInput = screen.getByTestId("SetCowHealthForm-healthValue");
-    expect(healthInput).toHaveValue(42);
+    await waitFor(() => {
+      expect(healthInput).toHaveValue(42);
+    });
 
     const submitButton = screen.getByTestId("SetCowHealthForm-Submit-Button");
 
@@ -318,7 +322,10 @@ describe("SetCowHealthForm tests", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(setItemSpy).toHaveBeenCalledWith("SetCowHealthForm-health", "24");
+      expect(storageMock.setItem).toHaveBeenCalledWith(
+        "SetCowHealthForm-health",
+        "24",
+      );
     });
   });
 
@@ -342,12 +349,11 @@ describe("SetCowHealthForm tests", () => {
 
     const defaultId = commonsFixtures.threeCommons[0].id;
     const testIdForFirstItem = `SetCowHealthForm-commons-${defaultId}`;
-    await waitFor(() => {
-      expect(screen.getByTestId(testIdForFirstItem)).toBeInTheDocument();
-    });
+    const commons = await screen.findByTestId(testIdForFirstItem);
 
-    const commons = screen.getByTestId(testIdForFirstItem);
-    expect(commons).toHaveAttribute("checked", "");
+    await waitFor(() => {
+      expect(commons).toBeChecked();
+    });
   });
 
   test("the correct parameters are passed to useBackend", async () => {

@@ -107,7 +107,9 @@ describe("InstructorReportSpecificCommonsForm tests", () => {
     });
 
     const commons = screen.getByTestId(testIdForFirstItem);
-    expect(commons).toHaveAttribute("checked", "");
+    await waitFor(() => {
+      expect(commons).toBeChecked();
+    });
   });
 
   test("the correct parameters are passed to useBackend", async () => {

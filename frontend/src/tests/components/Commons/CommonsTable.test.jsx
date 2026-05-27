@@ -80,7 +80,6 @@ describe("UserTable tests", () => {
       /Starting\s+Date/,
       /Last\s+Date/,
       /Degrad\s+Rate/,
-      /Show\s+LrdrBrd\?/,
       /Tot\s+Cows/,
       /Cap \/\s+User/,
       /Carry\s+Cap/,
@@ -147,12 +146,6 @@ describe("UserTable tests", () => {
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-commons.lastDate`),
     ).toHaveTextContent(/^2022-11-22$/);
-    expect(
-      screen.getByTestId(`${testId}-cell-row-1-col-commons.showLeaderboard`),
-    ).toHaveTextContent("true");
-    expect(
-      screen.getByTestId(`${testId}-cell-row-1-col-commons.showChat`),
-    ).toHaveTextContent("true");
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-totalCows`),
     ).toHaveTextContent("0");
