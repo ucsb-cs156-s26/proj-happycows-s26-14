@@ -24,7 +24,7 @@ import edu.ucsb.cs156.happiercows.entities.UserCommons;
 import edu.ucsb.cs156.happiercows.repositories.UserCommonsRepository;
 
 import org.springframework.security.core.Authentication;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 
 import java.util.Optional;
@@ -53,12 +53,12 @@ public class AnnouncementsController extends ApiController{
         @Parameter(description = "The datetime at which the announcement will be shown (defaults to current time)")
         @RequestParam(required = false)
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-        Date startDate,
+        LocalDateTime startDate,
 
         @Parameter(description = "The datetime at which the announcement will stop being shown (optional)")
         @RequestParam(required = false)
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-        Date endDate,
+        LocalDateTime endDate,
         @Parameter(description = "The announcement to be sent out") @RequestParam String announcementText) {
 
         User user = getCurrentUser().getUser();
@@ -77,13 +77,13 @@ public class AnnouncementsController extends ApiController{
 
         if (startDate == null) { 
             log.info("Start date not specified. Defaulting to current date.");
-            startDate = new Date(); 
+            startDate = LocalDateTime.now(); 
         }
 
         if (announcementText == "") {
             return ResponseEntity.badRequest().body("Announcement cannot be empty.");
         }
-        if (endDate != null && startDate.after(endDate)) {
+        if (endDate != null && startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().body("Start date must be before end date.");
         }
 
@@ -146,12 +146,12 @@ public class AnnouncementsController extends ApiController{
         @Parameter(description = "The datetime at which the announcement will be shown (defaults to current time)")
         @RequestParam(required = false)
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-        Date startDate,
+        LocalDateTime startDate,
         
         @Parameter(description = "The datetime at which the announcement will stop being shown (optional)")
         @RequestParam(required = false)
         @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-        Date endDate,
+        LocalDateTime endDate,
         @Parameter(description = "The announcement to be sent out") @RequestParam String announcementText) {
 
         User user = getCurrentUser().getUser();
@@ -174,10 +174,10 @@ public class AnnouncementsController extends ApiController{
 
         if (startDate == null) {
             log.info("Start date not specified. Defaulting to current date.");
-            startDate = new Date();
+            startDate = LocalDateTime.now();
         }
 
-        if (endDate != null && startDate.after(endDate)) {
+        if (endDate != null && startDate.isAfter(endDate)) {
             return ResponseEntity.badRequest().body("Start date must be before end date.");
         }
 
