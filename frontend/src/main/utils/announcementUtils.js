@@ -22,3 +22,17 @@ export function toBackendDateTime(dateTimeString) {
 
   return new Date(dateTimeString).toISOString();
 }
+
+export function formatAnnouncementDateTime(dateTimeString) {
+  if (!dateTimeString) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(dateTimeString));
+}

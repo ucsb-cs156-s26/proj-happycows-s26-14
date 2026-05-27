@@ -8,6 +8,7 @@ import { vi } from "vitest";
 import * as useBackendModule from "main/utils/useBackend";
 import {
   cellToAxiosParamsDelete,
+  formatAnnouncementDateTime,
   onDeleteSuccess,
 } from "main/utils/announcementUtils";
 
@@ -23,8 +24,8 @@ describe("AnnouncementTable tests", () => {
 
   const expectedHeaders = [
     "id",
-    "Start Date ISO Format",
-    "End Date ISO Format",
+    "Start Date",
+    "End Date",
     "Announcement",
   ];
   const expectedFields = ["id", "startDate", "endDate", "announcementText"];
@@ -90,14 +91,20 @@ describe("AnnouncementTable tests", () => {
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2024-12-12T00:00:00"));
+    expect(
+      screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
+    ).not.toHaveTextContent(":00:00");
 
     expect(screen.getByTestId(`${testId}-cell-row-1-col-id`)).toHaveTextContent(
       "2",
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-startDate`),
-    ).toHaveTextContent("2022-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2022-12-12T00:00:00"));
+    expect(screen.getByTestId(`${testId}-cell-row-1-col-endDate`)).toHaveTextContent(
+      "",
+    );
 
     const editButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Edit-button`,
@@ -144,14 +151,14 @@ describe("AnnouncementTable tests", () => {
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2024-12-12T00:00:00"));
 
     expect(screen.getByTestId(`${testId}-cell-row-1-col-id`)).toHaveTextContent(
       "2",
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-1-col-startDate`),
-    ).toHaveTextContent("2022-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2022-12-12T00:00:00"));
 
     expect(screen.queryByText("Delete")).not.toBeInTheDocument();
     expect(screen.queryByText("Edit")).not.toBeInTheDocument();
@@ -180,7 +187,7 @@ describe("AnnouncementTable tests", () => {
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2024-12-12T00:00:00"));
 
     const editButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Edit-button`,
@@ -249,7 +256,7 @@ describe("AnnouncementTable tests", () => {
     );
     expect(
       screen.getByTestId(`${testId}-cell-row-0-col-startDate`),
-    ).toHaveTextContent("2024-12-12T00:00:00");
+    ).toHaveTextContent(formatAnnouncementDateTime("2024-12-12T00:00:00"));
 
     const deleteButton = screen.getByTestId(
       `${testId}-cell-row-0-col-Delete-button`,

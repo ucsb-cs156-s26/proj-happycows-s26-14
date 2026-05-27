@@ -4,6 +4,7 @@ import {
   onDeleteSuccess,
   cellToAxiosParamsDelete,
   toBackendDateTime,
+  formatAnnouncementDateTime,
 } from "main/utils/announcementUtils";
 
 const mockToast = vi.fn();
@@ -74,6 +75,20 @@ describe("AnnouncementUtils", () => {
       expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
       expect(result).not.toContain("Dec");
       expect(result).not.toContain("AM");
+    });
+  });
+  describe("formatAnnouncementDateTime", () => {
+    test("It formats dates up to the minute", () => {
+      const result = formatAnnouncementDateTime("2024-12-12T03:04:05.678");
+
+      expect(result).toContain("3:04");
+      expect(result).not.toContain(":05");
+      expect(result).not.toContain("678");
+    });
+
+    test("It returns blank for missing dates", () => {
+      expect(formatAnnouncementDateTime()).toBe("");
+      expect(formatAnnouncementDateTime(null)).toBe("");
     });
   });
 });

@@ -4,6 +4,7 @@ import OurTable, { ButtonColumn } from "main/components/OurTable";
 import { useBackendMutation } from "main/utils/useBackend";
 import {
   cellToAxiosParamsDelete,
+  formatAnnouncementDateTime,
   onDeleteSuccess,
 } from "main/utils/announcementUtils";
 import { useNavigate } from "react-router";
@@ -41,12 +42,14 @@ export default function AnnouncementTable({
       accessor: "id", // accessor is the "key" in the data
     },
     {
-      Header: "Start Date ISO Format",
+      Header: "Start Date",
       accessor: "startDate",
+      Cell: ({ cell }) => formatAnnouncementDateTime(cell.value),
     },
     {
-      Header: "End Date ISO Format",
+      Header: "End Date",
       accessor: "endDate",
+      Cell: ({ cell }) => formatAnnouncementDateTime(cell.value),
     },
     {
       Header: "Announcement",
