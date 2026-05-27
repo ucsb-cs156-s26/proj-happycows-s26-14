@@ -258,9 +258,7 @@ describe("SetCowHealthForm tests", () => {
 
   test("healthValue can be loaded from localstorage", async () => {
     const storageMock = {
-      getItem: vi.fn((key) =>
-        key === "SetCowHealthForm-health" ? 42 : null,
-      ),
+      getItem: vi.fn((key) => (key === "SetCowHealthForm-health" ? 42 : null)),
       setItem: vi.fn(),
     };
     Object.defineProperty(window, "localStorage", {
@@ -279,7 +277,9 @@ describe("SetCowHealthForm tests", () => {
       </QueryClientProvider>,
     );
 
-    const healthInput = await screen.findByTestId("SetCowHealthForm-healthValue");
+    const healthInput = await screen.findByTestId(
+      "SetCowHealthForm-healthValue",
+    );
 
     await waitFor(() => {
       expect(healthInput).toHaveValue(42);
@@ -288,9 +288,7 @@ describe("SetCowHealthForm tests", () => {
 
   test("healthValue is saved in localstorage", async () => {
     const storageMock = {
-      getItem: vi.fn((key) =>
-        key === "SetCowHealthForm-health" ? 42 : null,
-      ),
+      getItem: vi.fn((key) => (key === "SetCowHealthForm-health" ? 42 : null)),
       setItem: vi.fn(),
     };
     Object.defineProperty(window, "localStorage", {
@@ -310,7 +308,9 @@ describe("SetCowHealthForm tests", () => {
       </QueryClientProvider>,
     );
 
-    const healthInput = await screen.findByTestId("SetCowHealthForm-healthValue");
+    const healthInput = await screen.findByTestId(
+      "SetCowHealthForm-healthValue",
+    );
 
     await waitFor(() => {
       expect(healthInput).toHaveValue(42);

@@ -38,7 +38,8 @@ export default function ReportHeaderTable({ report }) {
     {
       Header: "Leaderboard",
       id: "showLeaderboard",
-      accessor: (row, _rowIndex) => String(row.FARMERS_CAN_SEE_LEADERBOARD ?? row.showLeaderboard), // support new feature flag or legacy field
+      accessor: (row, _rowIndex) =>
+        String(row.FARMERS_CAN_SEE_LEADERBOARD ?? row.showLeaderboard), // support new feature flag or legacy field
     },
     {
       Header: "Capacity",

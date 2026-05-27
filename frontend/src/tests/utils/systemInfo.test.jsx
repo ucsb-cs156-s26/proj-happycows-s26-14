@@ -35,8 +35,9 @@ describe("utils/systemInfo tests", () => {
         wrapper,
       });
 
-      await waitFor(() =>
-        result.current.data.springH2ConsoleEnabled ===
+      await waitFor(
+        () =>
+          result.current.data.springH2ConsoleEnabled ===
           systemInfoFixtures.showingNeither.springH2ConsoleEnabled,
       );
 

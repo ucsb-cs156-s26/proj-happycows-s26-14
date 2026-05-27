@@ -67,9 +67,11 @@ describe("PlayPage tests", () => {
       totalPlayers: 5,
       totalCows: 5,
     });
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      SHOW_CHAT: true,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        SHOW_CHAT: true,
+      });
     axiosMock.onGet("/api/profits/all/commonsid").reply(200, []);
     axiosMock.onPut("/api/usercommons/sell").reply(200, userCommons);
     axiosMock.onPut("/api/usercommons/buy").reply(200, userCommons);
@@ -360,9 +362,11 @@ describe("PlayPage tests", () => {
       totalPlayers: 5,
       totalCows: 5,
     });
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      SHOW_CHAT: false,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        SHOW_CHAT: false,
+      });
     axiosMock.onGet("/api/profits/all/commonsid").reply(200, []);
     axiosMock.onPut("/api/usercommons/sell").reply(200, userCommons);
     axiosMock.onPut("/api/usercommons/buy").reply(200, userCommons);
@@ -419,9 +423,11 @@ describe("PlayPage tests", () => {
       totalPlayers: 5,
       totalCows: 5,
     });
-    axiosMock.onGet("/api/commonsfeatures", { params: { commonsId: 1 } }).reply(200, {
-      SHOW_CHAT: false,
-    });
+    axiosMock
+      .onGet("/api/commonsfeatures", { params: { commonsId: 1 } })
+      .reply(200, {
+        SHOW_CHAT: false,
+      });
     axiosMock.onGet("/api/profits/all/commonsid").reply(200, []);
     axiosMock.onPut("/api/usercommons/sell").reply(200, userCommons);
     axiosMock.onPut("/api/usercommons/buy").reply(200, userCommons);

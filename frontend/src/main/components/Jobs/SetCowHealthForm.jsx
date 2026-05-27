@@ -9,7 +9,11 @@ function SetCowHealthForm({
   testid = "SetCowHealthForm",
 }) {
   const getSavedHealth = () => {
-    if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.getItem === "function") {
+    if (
+      typeof window !== "undefined" &&
+      window.localStorage &&
+      typeof window.localStorage.getItem === "function"
+    ) {
       return window.localStorage.getItem(`${testid}-health`);
     }
     return null;
@@ -49,7 +53,11 @@ function SetCowHealthForm({
   const handleHealthValueChange = (e) => {
     const newValue = e.target.value;
     setHealthValue(newValue);
-    if (typeof window !== "undefined" && window.localStorage && typeof window.localStorage.setItem === "function") {
+    if (
+      typeof window !== "undefined" &&
+      window.localStorage &&
+      typeof window.localStorage.setItem === "function"
+    ) {
       window.localStorage.setItem(`${testid}-health`, newValue);
     }
   };
