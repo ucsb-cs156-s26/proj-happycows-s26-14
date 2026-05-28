@@ -8,15 +8,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-<span class="fc" id="L15">@Slf4j</span>
+<span class="fc" id="L16">@Slf4j</span>
 @Tag(name = &quot;Course&quot;)
 @RequestMapping(&quot;/api/course&quot;)
 @RestController
-<span class="fc" id="L19">public class CourseController extends ApiController {</span>
+<span class="fc" id="L20">public class CourseController extends ApiController {</span>
     @Autowired
     private CourseRepository courseRepository;
 
@@ -29,8 +30,8 @@ import org.springframework.web.bind.annotation.*;
     @PreAuthorize(&quot;hasRole('ROLE_USER')&quot;)
     @GetMapping(&quot;/all&quot;)
     public Iterable&lt;Course&gt; allOrganisations() {
-<span class="fc" id="L32">        Iterable&lt;Course&gt; courses = courseRepository.findAll();</span>
-<span class="fc" id="L33">        return courses;</span>
+<span class="fc" id="L33">        Iterable&lt;Course&gt; courses = courseRepository.findAll();</span>
+<span class="fc" id="L34">        return courses;</span>
     }
 
     @Operation(summary = &quot;Get a course by id&quot;)
@@ -38,9 +39,9 @@ import org.springframework.web.bind.annotation.*;
     @GetMapping(&quot;/{id}&quot;)
     public Course getCourseById(
             @Parameter(name = &quot;id&quot;) @PathVariable Long id) {
-<span class="fc" id="L41">        Course course = courseRepository.findById(id)</span>
-<span class="fc" id="L42">                .orElseThrow(() -&gt; new EntityNotFoundException(Course.class, id));</span>
-<span class="fc" id="L43">        return course;</span>
+<span class="fc" id="L42">        Course course = courseRepository.findById(id)</span>
+<span class="fc" id="L43">                .orElseThrow(() -&gt; new EntityNotFoundException(Course.class, id));</span>
+<span class="fc" id="L44">        return course;</span>
     }
 
     @Operation(summary = &quot;Create a course&quot;)
@@ -48,8 +49,58 @@ import org.springframework.web.bind.annotation.*;
     @PostMapping(&quot;&quot;)
     public Course postCourse(
             @Parameter(name = &quot;course&quot;) @RequestBody CourseDTO courseDTO) {
-<span class="fc" id="L51">        Course savedCourse = courseRepository.save(courseDTO.toCourse());</span>
-<span class="fc" id="L52">        return savedCourse;</span>
+<span class="fc" id="L52">        Course savedCourse = courseRepository.save(courseDTO.toCourse());</span>
+<span class="fc" id="L53">        return savedCourse;</span>
     }
+
+    /**
+     * Update a single course.
+     * 
+     * @param id id of the course to update
+     * @param incoming the new course information
+     * @return the updated course object
+     */
+    @Operation(summary = &quot;Update a single course&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @PutMapping(&quot;&quot;)
+    public Course updateCourse(
+            @Parameter(name = &quot;id&quot;) @RequestParam Long id,
+            @RequestBody @Valid Course incoming) {
+        
+<span class="fc" id="L70">        Course currCourse = courseRepository</span>
+<span class="fc" id="L71">                .findById(id)</span>
+<span class="fc" id="L72">                .orElseThrow(() -&gt; new EntityNotFoundException(Course.class, id));</span>
+
+<span class="fc" id="L74">        currCourse.setCode(incoming.getCode());</span>
+<span class="fc" id="L75">        currCourse.setName(incoming.getName());</span>
+<span class="fc" id="L76">        currCourse.setTerm(incoming.getTerm());</span>
+
+<span class="fc" id="L78">        courseRepository.save(currCourse);</span>
+
+<span class="fc" id="L80">        return currCourse;  </span>
+
+    }
+
+
+    /**
+     * Delete a course
+     *
+     * @param id the id of the course to delete
+     * @return a message indicating the course was deleted
+     */
+    @Operation(summary = &quot;Delete a Course&quot;)
+    @PreAuthorize(&quot;hasRole('ROLE_ADMIN')&quot;)
+    @DeleteMapping(&quot;&quot;)
+    public Object deleteCourse(@Parameter(name = &quot;id&quot;) @RequestParam Long id) {
+<span class="fc" id="L95">        Course currCourse =</span>
+            courseRepository
+<span class="fc" id="L97">                .findById(id)</span>
+<span class="fc" id="L98">                .orElseThrow(() -&gt; new EntityNotFoundException(Course.class, id));</span>
+
+<span class="fc" id="L100">        courseRepository.delete(currCourse);</span>
+<span class="fc" id="L101">        return genericMessage(&quot;Course with id %s deleted&quot;.formatted(id));</span>
+  }
+    
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.10.202304240956</span></div></body></html>
