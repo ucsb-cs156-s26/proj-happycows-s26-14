@@ -23,4 +23,4 @@ repo_name: "TBD"
 repo: ucsb-cs156-s26/proj-happycows-s26-14
 owner: ucsb-cs156-s26
 repo_name: proj-happycows-s26-14
-pull_requests: [{"author":{"id":"U_kgDOCNoJ1w","is_bot":false,"login":"brianridderucsb","name":""},"headRefName":"br-announcements-frontend-optimization","number":69,"title":"Optimize Announcements Admin User Experience","url":"https://github.com/ucsb-cs156-s26/proj-happycows-s26-14/pull/69"}]
+pull_requests: []
